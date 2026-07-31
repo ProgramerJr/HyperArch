@@ -87,6 +87,8 @@ MSYS_NO_PATHCONV=1 docker run --rm "${TTY_FLAGS[@]}" \
         done
         # multilib dentro de la ISO
         sed -i "/^#\[multilib\]/,+1 s/^#//" pacman.conf
+        # grml-zsh-config trae su propio /etc/skel/.zshrc y choca con el nuestro
+        sed -i "/^grml-zsh-config$/d" packages.x86_64
         sort -u packages.x86_64 -o packages.x86_64
         echo "   $(wc -l < packages.x86_64) paquetes"
 
