@@ -50,7 +50,7 @@ check() {
 
 banner
 check
-mkdir -p "$OUT" "$WORK"
+mkdir -p "$OUT" "$WORK" "$HERE/.pkgcache"
 
 say "Lanzando contenedor de compilación"
 TTY_FLAGS=()
@@ -61,6 +61,7 @@ MSYS_NO_PATHCONV=1 docker run --rm "${TTY_FLAGS[@]}" \
     -v "$HERE:/src:ro" \
     -v "$OUT:/out" \
     -v "$WORK:/work" \
+    -v "$HERE/.pkgcache:/var/cache/pacman/pkg" \
     archlinux:latest \
     bash -euo pipefail -c '
         echo ":: Preparando entorno de compilación"
