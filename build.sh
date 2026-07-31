@@ -49,7 +49,10 @@ check
 mkdir -p "$OUT" "$WORK"
 
 say "Lanzando contenedor de compilación"
-docker run --rm -it \
+TTY_FLAGS=()
+[ -t 0 ] && TTY_FLAGS=(-it)
+
+docker run --rm "${TTY_FLAGS[@]}" \
     --privileged \
     -v "$HERE:/src:ro" \
     -v "$OUT:/out" \
