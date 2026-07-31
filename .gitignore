@@ -1,0 +1,19 @@
+# Build artifacts
+out/
+.work/
+
+# Python
+__pycache__/
+*.pyc
+
+# Local test VM disk
+*.qcow2
+
+# Never commit credentials
+tokens.env
+backup.conf
+
+# Editor noise
+.vscode/
+.idea/
+*.swp

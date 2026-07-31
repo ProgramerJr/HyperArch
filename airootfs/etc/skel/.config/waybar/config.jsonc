@@ -1,0 +1,117 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 30,
+  "spacing": 2,
+  "margin-top": 4,
+  "margin-left": 8,
+  "margin-right": 8,
+
+  "modules-left": ["hyprland/workspaces", "hyprland/window"],
+  "modules-center": ["clock"],
+  "modules-right": [
+    "custom/ai",
+    "custom/github", "custom/netlify", "custom/render", "custom/docker",
+    "cpu", "memory", "custom/gpu", "temperature",
+    "pulseaudio", "network", "tray"
+  ],
+
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "format-icons": {
+      "1": "󰆍", "2": "󰨞", "3": "󰈹", "4": "󰆼",
+      "5": "󰍹", "9": "󰊴", "default": "󰧞"
+    },
+    "persistent-workspaces": { "1": [], "2": [], "3": [], "4": [], "5": [] }
+  },
+
+  "hyprland/window": {
+    "format": "{}",
+    "max-length": 40,
+    "separate-outputs": true
+  },
+
+  "clock": {
+    "format": "{:%H:%M}",
+    "format-alt": "{:%a %d %b  %H:%M}",
+    "tooltip-format": "<tt>{calendar}</tt>"
+  },
+
+  "custom/ai": {
+    "exec": "cat /run/hyper-ai/status.json 2>/dev/null || echo '{\"text\":\"󰚩 inactiva\",\"class\":\"warn\"}'",
+    "return-type": "json",
+    "interval": 15,
+    "on-click": "hyper-hub --panel ai"
+  },
+
+  "custom/github": {
+    "exec": "~/.config/waybar/widgets/github.sh",
+    "return-type": "json",
+    "interval": 300,
+    "on-click": "brave https://github.com/notifications"
+  },
+
+  "custom/netlify": {
+    "exec": "~/.config/waybar/widgets/netlify.sh",
+    "return-type": "json",
+    "interval": 300,
+    "on-click": "brave https://app.netlify.com"
+  },
+
+  "custom/render": {
+    "exec": "~/.config/waybar/widgets/render.sh",
+    "return-type": "json",
+    "interval": 300,
+    "on-click": "brave https://dashboard.render.com"
+  },
+
+  "custom/docker": {
+    "exec": "~/.config/waybar/widgets/docker.sh",
+    "return-type": "json",
+    "interval": 20,
+    "on-click": "kitty --class lazydocker -e lazydocker"
+  },
+
+  "custom/gpu": {
+    "exec": "~/.config/waybar/widgets/gpu.sh",
+    "return-type": "json",
+    "interval": 5,
+    "on-click": "kitty --class nvtop -e nvtop"
+  },
+
+  "cpu": {
+    "format": "󰻠 {usage}%",
+    "interval": 5,
+    "on-click": "kitty --class btop -e btop"
+  },
+
+  "memory": {
+    "format": "󰍛 {percentage}%",
+    "tooltip-format": "{used:0.1f}G / {total:0.1f}G",
+    "interval": 5
+  },
+
+  "temperature": {
+    "hwmon-path-abs": "/sys/devices/pci0000:00/0000:00:18.3/hwmon",
+    "input-filename": "temp1_input",
+    "critical-threshold": 85,
+    "format": "󰔏 {temperatureC}°C",
+    "format-critical": "󰸁 {temperatureC}°C"
+  },
+
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "󰝟",
+    "format-icons": { "default": ["󰕿", "󰖀", "󰕾"] },
+    "on-click": "pavucontrol"
+  },
+
+  "network": {
+    "format-ethernet": "󰈀",
+    "format-wifi": "󰤨 {essid}",
+    "format-disconnected": "󰤭",
+    "tooltip-format": "{ifname}  {ipaddr}"
+  },
+
+  "tray": { "spacing": 8 }
+}

@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "model": "qwen2.5:7b-instruct-q4_K_M",
+  "endpoint": "http://127.0.0.1:11434/api/generate",
+  "interval_seconds": 120,
+  "vram_ceiling_gb": 6,
+  "autonomy": "safe-only"
+}

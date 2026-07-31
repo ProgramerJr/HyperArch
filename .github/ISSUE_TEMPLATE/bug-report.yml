@@ -1,0 +1,37 @@
+name: "Bug report / Reporte de error"
+description: "Something is broken in the installed system / Algo falla en el sistema instalado"
+title: "[bug] "
+labels: ["type:bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Area / Área"
+      options:
+        - "Installer / Instalador"
+        - "Desktop (Hyprland, Waybar, themes)"
+        - "AI (hyper-ai)"
+        - "Modes (production/focus)"
+        - "Widgets"
+        - "Other / Otro"
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: "Hardware (CPU / GPU / RAM)"
+      placeholder: "Ryzen 9 7900X3D / RX 7900 XTX / 64GB"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: "What happened / Qué pasó"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Relevant logs / Logs relevantes"
+      description: "journalctl -u hyper-ai, /var/log/hyper-ai.log, hyprctl..."
+      render: shell

@@ -1,0 +1,5 @@
+ollama-rocm
+python
+python-psutil
+python-requests
+python-pip

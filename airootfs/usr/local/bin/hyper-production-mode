@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# hyper-production-mode — alterna entre el tema decorativo y el de producción.
+#
+#   hyper-production-mode on|off|toggle|status|benchmark
+#
+# FR-32..FR-35. El estado manual tiene prioridad sobre el automático: si el
+# usuario fuerza un modo, el vigilante (hyper-production-watch) no lo revierte
+# hasta que se libera con `auto`.
+
+set -euo pipefail
+
+STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/hyperarch"
+STATE_FILE="$STATE_DIR/production.state"
+MANUAL_FILE="$STATE_DIR/production.manual"
+CONF_DIR="$HOME/.config/hypr"
+mkdir -p "$STATE_DIR"
+
+current() { cat "$STATE_FILE" 2>/dev/null || echo "off"; }
+
+apply_theme() {
+    local theme="$1"
+    # Reescribe el source del tema y recarga en caliente.
+    sed -i "s|^source = ~/.config/hypr/theme.*\.conf|source = ~/.config/hypr/${theme}|" \
+        "$CONF_DIR/hyprland.conf"
+    hyprctl reload >/dev/null
+}
+
+gpu_busy() {
+    # Porcentaje de ocupación de la GPU, para verificar el efecto real.
+    rocm-smi --showuse --csv 2>/dev/null | awk -F, 'NR==2 {print $2}' || echo "n/a"
+}
+
+mode_on() {
+    [[ "$(current)" == "on" ]] && return 0
+    # Recordar el modo de fondo actual y forzar estático: un fondo animado
+    # es exactamente el coste de GPU que este modo elimina.
+    hyper-wallpaper status 2>/dev/null | awk -F": " "/^modo/{print \$2}" \
+        > "$STATE_DIR/wallpaper.prev" || true
+    hyper-wallpaper static >/dev/null 2>&1 || true
+    apply_theme "theme-production.conf"
+    echo "on" > "$STATE_FILE"
+    notify-send -t 1500 -u low "HyperArch" "Modo Producción activado"
+}
+
+mode_off() {
+    [[ "$(current)" == "off" ]] && return 0
+    apply_theme "theme.conf"
+    # Restaurar el fondo animado solo si estaba activo antes.
+    if [[ "$(cat "$STATE_DIR/wallpaper.prev" 2>/dev/null)" == "engine" ]]; then
+        hyper-wallpaper engine "" >/dev/null 2>&1 || true
+    fi
+    echo "off" > "$STATE_FILE"
+    notify-send -t 1500 -u low "HyperArch" "Modo Producción desactivado"
+}
+
+case "${1:-toggle}" in
+    on)     touch "$MANUAL_FILE"; mode_on ;;
+    off)    touch "$MANUAL_FILE"; mode_off ;;
+    auto)   rm -f "$MANUAL_FILE"; echo "Control automático restaurado" ;;
+    toggle)
+        touch "$MANUAL_FILE"
+        [[ "$(current)" == "on" ]] && mode_off || mode_on
+        ;;
+    status)
+        echo "modo: $(current)"
+        echo "control: $([[ -f "$MANUAL_FILE" ]] && echo manual || echo automático)"
+        echo "gpu: $(gpu_busy)%"
+        ;;
+    benchmark)
+        # FR-35: demostrar la reducción, no afirmarla.
+        echo "Midiendo uso de GPU en ambos modos (10 s cada uno)..."
+        mode_off; sleep 3
+        d=0; for _ in {1..10}; do d=$((d + $(gpu_busy 2>/dev/null || echo 0))); sleep 1; done
+        mode_on; sleep 3
+        p=0; for _ in {1..10}; do p=$((p + $(gpu_busy 2>/dev/null || echo 0))); sleep 1; done
+        echo "  decorativo: $((d/10))% media"
+        echo "  producción: $((p/10))% media"
+        echo "  reducción:  $(( d > 0 ? (d-p)*100/d : 0 ))%"
+        ;;
+    *) echo "uso: hyper-production-mode {on|off|auto|toggle|status|benchmark}" >&2; exit 1 ;;
+esac

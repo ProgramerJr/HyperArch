@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# hyper-hub — centro de control de HyperArch (CP-01, CP-06).
+#
+# Fase 1 por diseño: agregador fino sobre herramientas que ya existen.
+# Una aplicación gráfica propia solo se justifica cuando este agregador
+# demuestre sus límites.
+set -uo pipefail
+
+A=$'\e[1;31m'; T=$'\e[0;37m'; D=$'\e[0;90m'
+OK=$'\e[1;32m'; W=$'\e[1;33m'; R=$'\e[0m'
+
+h()  { printf "\n${A}▎ %s${R}\n" "$1"; }
+kv() { printf "  ${T}%-20s${R} %s\n" "$1" "$2"; }
+
+panel_system() {
+    h "SISTEMA"
+    kv "Host"     "$(hostnamectl --static 2>/dev/null || hostname)"
+    kv "Kernel"   "$(uname -r)"
+    kv "Uptime"   "$(uptime -p 2>/dev/null | sed 's/^up //')"
+    kv "CPU"      "$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs)"
+    kv "Carga"    "$(cut -d' ' -f1-3 /proc/loadavg)"
+    kv "RAM"      "$(free -h | awk '/^Mem:/ {print $3 " / " $2}')"
+    kv "Swap"     "$(free -h | awk '/^Swap:/ {print $3 " / " $2}')"
+    kv "Governor" "$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo n/a)"
+}
+
+panel_gpu() {
+    h "GPU"
+    if command -v rocm-smi >/dev/null 2>&1; then
+        rocm-smi --showuse --showmemuse --showtemp --showpower 2>/dev/null \
+            | grep -Ei 'gpu use|vram|temperature|power' | sed 's/^/  /' | head -10
+    else
+        kv "estado" "rocm-smi no disponible"
+    fi
+}
+
+panel_storage() {
+    h "ALMACENAMIENTO"
+    df -h / /home 2>/dev/null | awk 'NR>1 {printf "  %-20s %s libres de %s (%s usado)\n", $6, $4, $2, $5}'
+    if command -v snapper >/dev/null 2>&1; then
+        n=$(sudo -n snapper -c root list 2>/dev/null | tail -n +3 | wc -l || echo "?")
+        kv "Snapshots" "$n"
+    fi
+}
+
+panel_docker() {
+    h "DOCKER"
+    if docker info >/dev/null 2>&1; then
+        kv "Contenedores" "$(docker ps -q | wc -l) activos de $(docker ps -aq | wc -l)"
+        docker ps --format '  {{.Names}}  →  {{.Status}}' 2>/dev/null | head -8
+        docker system df --format '  {{.Type}}: {{.Size}} (recuperable: {{.Reclaimable}})' 2>/dev/null | head -4
+    else
+        kv "estado" "demonio parado  (sudo systemctl start docker)"
+    fi
+}
+
+panel_ai() {
+    h "IA DE SISTEMA"
+    if systemctl is-active --quiet hyper-ai 2>/dev/null; then
+        kv "Servicio" "${OK}activo${R}"
+    else
+        kv "Servicio" "${W}parado${R}"
+    fi
+    kv "Modelo"    "$(jq -r '.model' /etc/hyperarch/ai.json 2>/dev/null || echo n/a)"
+    kv "Autonomía" "$(jq -r '.autonomy' /etc/hyperarch/ai.json 2>/dev/null || echo n/a)"
+
+    if command -v ollama >/dev/null 2>&1 && ollama ps 2>/dev/null | tail -n +2 | grep -q .; then
+        kv "En VRAM" "$(ollama ps 2>/dev/null | awk 'NR==2 {print $1"  "$3$4}')"
+    else
+        kv "En VRAM" "ninguno (carga bajo demanda)"
+    fi
+
+    printf "\n  ${D}Registro reciente:${R}\n"
+    if [[ -r /var/log/hyper-ai.log ]]; then
+        tail -n 6 /var/log/hyper-ai.log | sed 's/^/  /'
+    else
+        echo "  (sin registro todavía)"
+    fi
+}
+
+panel_modes() {
+    h "MODOS"
+    kv "Producción" "$(hyper-production-mode status 2>/dev/null | awk -F': ' '/modo/{print $2}')"
+    kv "Foco"       "$(hyper-focus-mode status 2>/dev/null || echo off)"
+    kv "Perfil"     "$(hyper-profile status 2>/dev/null | awk -F': ' '/governor/{print $2}')"
+    printf "\n  ${D}SUPER+P producción · SUPER+Z foco · hyper-profile {dev|ai|gaming|silent}${R}\n"
+}
+
+banner() {
+    printf "\n${A}"
+    echo '   ██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗'
+    echo '   ███████║ ╚████╔╝ ██████╔╝█████╗  ██████╔╝'
+    echo '   ██║  ██║   ██║   ██║     ███████╗██║  ██║   ·  H U B'
+    printf "${R}\n"
+}
+
+case "${1:-}" in
+    --panel)
+        case "${2:-system}" in
+            ai)     panel_ai ;;
+            gpu)    panel_gpu ;;
+            docker) panel_docker ;;
+            modes)  panel_modes ;;
+            *)      panel_system ;;
+        esac
+        ;;
+    --watch)  exec watch -tc -n 5 "$0" ;;
+    -h|--help) echo "uso: hyper-hub [--panel ai|gpu|docker|system|modes] [--watch]" ;;
+    *)
+        banner; panel_system; panel_gpu; panel_storage; panel_docker; panel_ai; panel_modes
+        printf "\n  ${D}hyper-hub --watch para seguimiento en vivo${R}\n\n"
+        ;;
+esac

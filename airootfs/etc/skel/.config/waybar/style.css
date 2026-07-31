@@ -1,0 +1,106 @@
+/* HyperArch — Crimson Glass */
+
+@define-color bg        rgba(9, 9, 9, 0.72);
+@define-color surface   rgba(20, 16, 18, 0.55);
+@define-color accent    #ff1e3c;
+@define-color accentdim #8b0020;
+@define-color text      #f3d6d9;
+@define-color muted     #6b5658;
+@define-color ok        #4ade80;
+@define-color warn      #fbbf24;
+@define-color err       #ff1e3c;
+
+* {
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 12px;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+}
+
+window#waybar {
+  background: transparent;
+}
+
+.modules-left, .modules-center, .modules-right {
+  background: @bg;
+  border: 1px solid rgba(255, 30, 60, 0.18);
+  border-radius: 12px;
+  padding: 0 4px;
+}
+
+/* ── Workspaces ─────────────────────────────────────────── */
+#workspaces button {
+  padding: 0 8px;
+  color: @muted;
+  background: transparent;
+  border-radius: 8px;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+#workspaces button:hover {
+  color: @text;
+  background: @surface;
+}
+#workspaces button.active {
+  color: @accent;
+  background: rgba(255, 30, 60, 0.12);
+  box-shadow: inset 0 -2px 0 @accent;
+}
+#workspaces button.urgent {
+  color: #090909;
+  background: @accent;
+}
+
+#window {
+  color: @muted;
+  padding: 0 10px;
+  font-style: italic;
+}
+
+/* ── Reloj ──────────────────────────────────────────────── */
+#clock {
+  color: @text;
+  font-weight: bold;
+  padding: 0 14px;
+  letter-spacing: 1px;
+}
+
+/* ── Módulos ────────────────────────────────────────────── */
+#cpu, #memory, #temperature, #pulseaudio, #network, #tray,
+#custom-ai, #custom-github, #custom-netlify, #custom-render,
+#custom-docker, #custom-gpu {
+  padding: 0 9px;
+  color: @text;
+}
+
+#custom-ai {
+  color: @accent;
+  font-weight: bold;
+}
+
+/* Estados semánticos compartidos por los widgets DevOps */
+.ok    { color: @ok; }
+.warn  { color: @warn; }
+.err   { color: @err; font-weight: bold; }
+
+#temperature.critical {
+  color: #090909;
+  background: @accent;
+  border-radius: 8px;
+}
+
+#tray menu {
+  background: @bg;
+  border: 1px solid rgba(255, 30, 60, 0.2);
+  border-radius: 10px;
+}
+
+tooltip {
+  background: rgba(9, 9, 9, 0.95);
+  border: 1px solid @accentdim;
+  border-radius: 10px;
+}
+tooltip label {
+  color: @text;
+  padding: 4px;
+}

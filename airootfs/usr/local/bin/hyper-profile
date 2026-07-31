@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# hyper-profile — perfiles de carga (CP-02, PR-12, PR-18).
+#   dev | ai | gaming | silent
+set -euo pipefail
+
+gov() { echo "$1" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor >/dev/null; }
+
+case "${1:-status}" in
+    dev)
+        gov performance
+        sudo sysctl -qw vm.swappiness=10
+        notify-send "HyperArch" "Perfil: Desarrollo (24 hilos, governor performance)"
+        ;;
+    ai)
+        gov performance
+        sudo sysctl -qw vm.swappiness=1
+        notify-send "HyperArch" "Perfil: IA (VRAM priorizada, swap mínimo)"
+        ;;
+    gaming)
+        gov performance
+        # Los juegos se benefician del CCD con V-Cache.
+        notify-send "HyperArch" "Perfil: Gaming (sesgo a CCD0 V-Cache)"
+        echo "Lanza juegos con: hyper-ccd cache <juego>"
+        ;;
+    silent)
+        gov powersave
+        notify-send "HyperArch" "Perfil: Silencio (powersave)"
+        ;;
+    status)
+        echo "governor: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor)"
+        echo "swappiness: $(cat /proc/sys/vm/swappiness)"
+        ;;
+    *) echo "uso: hyper-profile {dev|ai|gaming|silent|status}" >&2; exit 1 ;;
+esac

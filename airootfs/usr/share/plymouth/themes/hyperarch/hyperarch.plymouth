@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=HyperArch
+Description=HyperArch crimson boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/hyperarch
+ScriptFile=/usr/share/plymouth/themes/hyperarch/hyperarch.script

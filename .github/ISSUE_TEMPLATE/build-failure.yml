@@ -1,0 +1,28 @@
+name: "Build failure / Fallo de compilación"
+description: "The ISO build failed / La compilación de la ISO falló"
+title: "[build] "
+labels: ["type:bug", "area:builder"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **EN**: Build failures are the most valuable reports in alpha. Thank you.
+        **ES**: Los fallos de compilación son los reportes más valiosos en alfa. Gracias.
+  - type: input
+    id: host
+    attributes:
+      label: "Host OS / Sistema anfitrión"
+      placeholder: "Windows 11 + Docker Desktop 4.x / Ubuntu 24.04..."
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: "Build log (last 50 lines) / Log de compilación (últimas 50 líneas)"
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: "Anything else / Algo más"

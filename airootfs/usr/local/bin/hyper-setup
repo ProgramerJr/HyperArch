@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+#
+# hyper-setup — configuración de primer arranque.
+# Requiere conexión a internet. Se ejecuta una sola vez.
+#
+set -euo pipefail
+
+RED=$'\e[1;31m'; GRN=$'\e[1;32m'; RST=$'\e[0m'
+say() { echo "${GRN}::${RST} $*"; }
+
+[[ $EUID -ne 0 ]] || { echo "No lo ejecutes como root."; exit 1; }
+
+echo
+echo "  ${RED}HyperArch${RST} — configuración inicial"
+echo
+
+# ── yay ───────────────────────────────────────────────────────────────────
+if ! command -v yay >/dev/null; then
+    say "Instalando yay (AUR)"
+    tmp=$(mktemp -d)
+    git clone --depth=1 https://aur.archlinux.org/yay-bin.git "$tmp/yay-bin"
+    (cd "$tmp/yay-bin" && makepkg -si --noconfirm)
+    rm -rf "$tmp"
+fi
+
+# ── Paquetes AUR ──────────────────────────────────────────────────────────
+say "Instalando aplicaciones (AUR)"
+yay -S --noconfirm --needed \
+    visual-studio-code-bin \
+    brave-bin \
+    lazydocker \
+    lact \
+    distrobox \
+    tailscale \
+    mongodb-compass \
+    bibata-cursor-theme \
+    linux-wallpaperengine-git \
+    steamcmd
+
+# ── VS Code: tres perfiles aislados (DV-05) ───────────────────────────────
+say "Configurando perfiles de VS Code"
+
+WEB=(
+  dbaeumer.vscode-eslint esbenp.prettier-vscode
+  dsznajder.es7-react-js-snippets bradlc.vscode-tailwindcss
+  christian-kohler.npm-intellisense formulahendry.auto-rename-tag
+  ms-vscode.vscode-typescript-next mongodb.mongodb-vscode
+  humao.rest-client eamodio.gitlens usernamehw.errorlens
+  pkief.material-icon-theme
+)
+JAVA=(
+  vscjava.vscode-java-pack vscjava.vscode-maven
+  vscjava.vscode-java-debug vscjava.vscode-java-test
+  vscjava.vscode-gradle redhat.java
+  vmware.vscode-boot-dev-pack
+  eamodio.gitlens usernamehw.errorlens pkief.material-icon-theme
+)
+OPS=(
+  ms-azuretools.vscode-docker ms-kubernetes-tools.vscode-kubernetes-tools
+  redhat.vscode-yaml timonwong.shellcheck
+  github.vscode-github-actions tamasfe.even-better-toml
+  eamodio.gitlens pkief.material-icon-theme
+)
+
+install_profile() {
+    local profile="$1"; shift
+    for ext in "$@"; do
+        code --profile "$profile" --install-extension "$ext" --force >/dev/null 2>&1 \
+            && echo "   ✓ $profile · $ext" \
+            || echo "   ✗ $profile · $ext (fallo)"
+    done
+}
+
+install_profile "Web-React" "${WEB[@]}"
+install_profile "Java"      "${JAVA[@]}"
+install_profile "DevOps"    "${OPS[@]}"
+
+# ── Lanzadores de escritorio ──────────────────────────────────────────────
+say "Creando lanzadores"
+mkdir -p "$HOME/.local/share/applications"
+make_launcher() {
+    cat > "$HOME/.local/share/applications/vscode-$2.desktop" << EOF
+[Desktop Entry]
+Name=VS Code — $1
+Exec=code --profile $3 %F
+Icon=vscode
+Terminal=false
+Type=Application
+Categories=Development;
+EOF
+}
+make_launcher "Web/React" "web"    "Web-React"
+make_launcher "Java"      "java"   "Java"
+make_launcher "DevOps"    "devops" "DevOps"
+
+# ── Modelo de IA (AI-10) ──────────────────────────────────────────────────
+say "Descargando modelo de IA local (~4.7 GB)"
+MODEL=$(jq -r '.model' /etc/hyperarch/ai.json 2>/dev/null || echo "qwen2.5:7b-instruct-q4_K_M")
+if ollama pull "$MODEL"; then
+    sudo systemctl restart hyper-ai
+    echo "   ✓ modelo $MODEL listo"
+else
+    echo "   ✗ fallo al descargar. La IA seguirá funcionando en modo reglas."
+fi
+
+# ── Tokens ────────────────────────────────────────────────────────────────
+CFG="$HOME/.config/hyperarch"
+if [[ ! -f "$CFG/tokens.env" ]]; then
+    cp "$CFG/tokens.env.example" "$CFG/tokens.env"
+    chmod 600 "$CFG/tokens.env"
+    say "Plantilla de tokens creada en $CFG/tokens.env"
+fi
+
+echo
+echo "  ${GRN}Listo.${RST}"
+echo
+echo "  Siguientes pasos:"
+echo "    1. Rellena tus tokens:  nano ~/.config/hyperarch/tokens.env"
+echo "    2. Reinicia Waybar:     pkill waybar && waybar &"
+echo "    3. Atajos:              SUPER+R (React)  SUPER+J (Java)  SUPER+H (Hub)"
+echo "    4. Undervolt de GPU:    abre LACT"
+echo
+# Servicios de usuario
+systemctl --user enable hyper-backup.timer 2>/dev/null || true
+
+# LACT (control de GPU): demonio del sistema
+sudo systemctl enable --now lactd 2>/dev/null || true
+
+say "Fondo animado (opcional)"
+echo '   Fondo recomendado de la Workshop (necesitas Wallpaper Engine en Steam):'
+echo '     "Black and red Abstract" - ID 1180974281'
+echo '   Descargalo suscribiendote desde Steam, o con:'
+echo '     steamcmd +login TU_USUARIO +workshop_download_item 431960 1180974281 +quit'
+echo '   Activalo con:  hyper-wallpaper engine 1180974281'
+echo '   (En Modo Produccion vuelve solo al fondo estatico.)'
+
+touch "$HOME/.hyper-setup-done"

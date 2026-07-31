@@ -1,0 +1,15 @@
+name: "Feature request / Propuesta de mejora"
+description: "Suggest an improvement / Sugiere una mejora"
+title: "[feat] "
+labels: ["type:feat"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: "What and why / Qué y por qué"
+    validations:
+      required: true
+  - type: textarea
+    id: alt
+    attributes:
+      label: "Alternatives considered / Alternativas consideradas"

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# hyper-ccd — afinidad de CCD para el Ryzen 9 7900X3D (PR-14, PR-18).
+#
+# El 7900X3D tiene dos CCD asimétricos: CCD0 con 3D V-Cache (núcleos 0-5,
+# hilos 0-5 y 12-17) y CCD1 sin ella pero con más frecuencia (núcleos 6-11).
+# Windows lo gestiona con un driver propio; en Linux lo hacemos explícito.
+set -euo pipefail
+
+VCACHE_CPUS="0-5,12-17"
+FREQ_CPUS="6-11,18-23"
+ALL_CPUS="0-23"
+
+usage() { echo "uso: hyper-ccd {cache|freq|all} <comando...>  |  hyper-ccd info"; exit 1; }
+
+case "${1:-}" in
+    cache) shift; exec taskset -c "$VCACHE_CPUS" "$@" ;;
+    freq)  shift; exec taskset -c "$FREQ_CPUS"   "$@" ;;
+    all)   shift; exec taskset -c "$ALL_CPUS"    "$@" ;;
+    info)
+        echo "CCD0 (3D V-Cache) : CPUs $VCACHE_CPUS  -> latencia, juegos, cargas sensibles a caché"
+        echo "CCD1 (alta frec.) : CPUs $FREQ_CPUS  -> single-thread intensivo"
+        echo "Todos             : CPUs $ALL_CPUS  -> compilación, contenedores, IA"
+        echo
+        lscpu | grep -E "Model name|CPU\(s\)|Thread|Core"
+        ;;
+    *) usage ;;
+esac

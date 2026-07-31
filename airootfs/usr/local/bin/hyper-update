@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# hyper-update — actualización segura del sistema completo.
+# Crea snapshot ANTES de tocar nada: si algo rompe, GRUB → snapshots.
+set -euo pipefail
+G=$'\e[1;32m'; Y=$'\e[1;33m'; R=$'\e[0m'
+say() { echo "${G}::${R} $*"; }
+
+say "Creando snapshot previo"
+sudo snapper -c root create -d "pre hyper-update $(date +%F_%H%M)" || true
+
+say "Actualizando mirrors si están viejos (>7 días)"
+if [[ -n "$(find /etc/pacman.d/mirrorlist -mtime +7 2>/dev/null)" ]]; then
+    sudo reflector --country ES,FR,DE --protocol https --latest 15 \
+        --sort rate --save /etc/pacman.d/mirrorlist || true
+fi
+
+say "Sistema (pacman)"
+sudo pacman -Syu
+
+if command -v yay >/dev/null; then
+    say "AUR (yay)"
+    yay -Sua
+fi
+
+say "Limpiando caché de pacman (conserva 2 versiones)"
+sudo paccache -rk2
+
+if command -v docker >/dev/null && docker info >/dev/null 2>&1; then
+    reclaim=$(docker system df --format "{{.Reclaimable}}" 2>/dev/null | head -1)
+    echo
+    read -rp "${Y}?${R} Docker tiene ${reclaim:-algo} recuperable. ¿Limpiar imágenes sin uso? [s/N] " a
+    [[ "${a,,}" == "s" ]] && docker image prune -f
+fi
+
+if command -v ollama >/dev/null; then
+    say "Modelos de IA instalados:"
+    ollama list 2>/dev/null || true
+fi
+
+say "Hecho. Si algo falla tras reiniciar: GRUB → HyperArch snapshots."

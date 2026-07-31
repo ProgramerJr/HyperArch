@@ -1,0 +1,91 @@
+# HyperArch — configuración central
+# Único contrato del sistema. El builder y el instalador leen de aquí.
+
+[distro]
+name         = "HyperArch"
+version      = "0.3.0"
+codename     = "Crimson"
+iso_label    = "HYPERARCH"
+compression  = "zstd"
+
+[hardware]
+# Estación de referencia. Ajusta si cambias de máquina.
+cpu          = "AMD Ryzen 9 7900X3D"   # 12C/24T, dual-CCD, V-Cache en CCD0
+gpu          = "AMD Radeon RX 7900 XTX" # RDNA3, 24 GB
+ram_gb       = 64
+nvme_gb      = 4000
+ccd_vcache   = "0-5"      # núcleos del CCD con 3D V-Cache
+ccd_freq     = "6-11"     # núcleos del CCD de alta frecuencia
+threads      = 24
+
+[filesystem]
+# RR-04. @docker y @models sin CoW: capas de contenedor y pesos de modelos
+# son ficheros grandes, ya comprimidos y de escritura intensiva.
+type         = "btrfs"
+subvolumes   = ["@", "@home", "@snapshots", "@var_log", "@var_cache", "@docker", "@models"]
+nocow        = ["@docker", "@models"]
+no_snapshot  = ["@var_log", "@var_cache"]
+compression  = "zstd:3"
+encryption   = false      # D-05: rechazado, ver requirements.md SE-08
+hibernation  = false      # RR-05
+
+[boot]
+loader       = "grub"     # D-01
+snapshots_in_menu = true  # grub-btrfs
+plymouth     = true
+timeout      = 3
+
+[kernel]
+package      = "linux-zen"
+fallback     = "linux"
+params       = [
+  "amdgpu.ppfeaturemask=0xffffffff",   # habilita control de undervolt/fan (LACT)
+  "amd_pstate=active",
+  "nowatchdog",
+  "split_lock_detect=off",
+]
+
+[desktop]
+compositor   = "hyprland"
+bar          = "waybar"
+terminal     = "kitty"
+launcher     = "walker"
+greeter      = "sddm"
+shell        = "zsh"
+refresh_hz   = 144
+
+[theme]
+background   = "#090909"
+surface      = "#0f0d0e"
+accent       = "#ff1e3c"
+accent_dark  = "#8b0020"
+text         = "#f3d6d9"
+muted        = "#6b5658"
+font_mono    = "JetBrainsMono Nerd Font"
+blur_size    = 10
+blur_passes  = 4
+opacity      = 0.82
+rounding     = 14
+
+[ai]
+# AI-10: el modelo se dimensiona por la tarea. Resumir telemetría no
+# necesita 32B. ~5 GB deja VRAM libre para el compositor.
+enabled      = true
+runtime      = "ollama"
+model        = "qwen2.5:7b-instruct-q4_K_M"
+vram_ceiling_gb = 6
+interval_seconds = 120
+autonomy     = "safe-only"   # FR-07: nunca acciones destructivas automáticas
+
+[docker]
+data_root    = "/var/lib/docker"   # subvolumen @docker
+buildkit     = true
+compose      = true
+
+[database]
+engine       = "mongodb"     # D: solo MongoDB
+mode         = "container"   # nunca instalado en el host
+
+[browsers]
+primary      = "brave"       # D-04: dos navegadores
+testing      = "chromium"

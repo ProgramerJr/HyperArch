@@ -1,0 +1,10 @@
+visual-studio-code-bin
+brave-bin
+lazydocker
+lact
+distrobox
+tailscale
+mongodb-compass
+bibata-cursor-theme
+linux-wallpaperengine-git
+steamcmd

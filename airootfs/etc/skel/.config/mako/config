@@ -1,0 +1,21 @@
+# HyperArch — notificaciones Crimson Glass
+font=JetBrainsMono Nerd Font 11
+background-color=#0f0d0eee
+text-color=#f3d6d9
+border-color=#ff1e3c
+border-size=2
+border-radius=12
+padding=12
+margin=8
+default-timeout=6000
+max-visible=4
+anchor=top-right
+layer=overlay
+
+[urgency=critical]
+border-color=#ff1e3c
+background-color=#2a0a10ee
+default-timeout=0
+
+[mode=do-not-disturb]
+invisible=1

@@ -1,0 +1,9 @@
+ffmpeg
+obs-studio
+gimp
+inkscape
+krita
+vlc
+imagemagick
+easyeffects
+v4l2loopback-dkms

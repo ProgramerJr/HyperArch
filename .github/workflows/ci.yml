@@ -1,0 +1,56 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate scripts and configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bash syntax
+        run: |
+          set -e
+          while IFS= read -r f; do
+            bash -n "$f" && echo "ok  $f"
+          done < <(grep -rlE "^#!.*bash" build.sh test-vm.sh installer airootfs/usr/local/bin airootfs/etc/skel --include="*" 2>/dev/null | grep -v hyper-ai)
+
+      - name: ShellCheck (informational)
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y shellcheck >/dev/null
+          shellcheck -S warning build.sh test-vm.sh installer/install.sh airootfs/usr/local/bin/hyper-* || true
+
+      - name: Python syntax
+        run: python3 -m py_compile airootfs/usr/local/bin/hyper-ai
+
+      - name: JSON / TOML validity
+        run: |
+          python3 -c "import json; json.load(open('airootfs/etc/hyperarch/ai.json'))"
+          python3 -c "import tomllib; tomllib.load(open('hyperarch.toml','rb'))"
+
+      - name: Package lists are non-empty and comment-clean
+        run: |
+          for f in packages/*.txt; do
+            n=$(grep -cvE "^\s*(#|$)" "$f")
+            echo "$f: $n packages"
+            [ "$n" -gt 0 ]
+          done
+
+  build-iso:
+    name: Build ISO (manual)
+    if: github.event_name == workflow_dispatch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build in Arch container
+        run: ./build.sh
+      - name: Upload checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: out/SHA256SUMS

@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# hyper-wallpaper — gestor de fondos de HyperArch.
+#
+# Dos modos:
+#   static   → PNG vía hyprpaper (coste GPU ~cero). Modo por defecto.
+#   engine   → wallpaper animado de la Workshop de Wallpaper Engine,
+#              renderizado con linux-wallpaperengine (proyecto comunitario:
+#              Wallpaper Engine en sí es software de Windows).
+#
+# El Modo Producción llama a `hyper-wallpaper static` automáticamente:
+# un fondo animado es exactamente el tipo de coste de GPU que ese modo
+# existe para eliminar.
+#
+# Requisitos del modo engine:
+#   - Wallpaper Engine comprado en Steam (los fondos van ligados a la licencia)
+#   - linux-wallpaperengine (AUR) instalado por hyper-setup
+#   - El fondo descargado vía Steam/steamcmd (appid 431960)
+#
+# Fondo recomendado para el tema Crimson (Workshop):
+#   "Black and red Abstract" — ID 1180974281
+#   steamcommunity.com/sharedfiles/filedetails/?id=1180974281
+#
+set -euo pipefail
+
+WE_APPID=431960
+WORKSHOP_DIR_CANDIDATES=(
+    "$HOME/.local/share/Steam/steamapps/workshop/content/$WE_APPID"
+    "$HOME/.steam/steam/steamapps/workshop/content/$WE_APPID"
+)
+DEFAULT_ID_FILE="$HOME/.config/hyperarch/wallpaper-engine.id"
+STATE="$XDG_RUNTIME_DIR/hyperarch/wallpaper.mode"
+mkdir -p "$(dirname "$STATE")"
+
+find_workshop() {
+    for d in "${WORKSHOP_DIR_CANDIDATES[@]}"; do
+        [[ -d "$d" ]] && { echo "$d"; return 0; }
+    done
+    return 1
+}
+
+stop_engine() {
+    pkill -f linux-wallpaperengine 2>/dev/null || true
+}
+
+mode_static() {
+    stop_engine
+    pgrep -x hyprpaper >/dev/null || hyprpaper &
+    echo static > "$STATE"
+}
+
+mode_engine() {
+    local id="${1:-}"
+    [[ -z "$id" && -f "$DEFAULT_ID_FILE" ]] && id="$(cat "$DEFAULT_ID_FILE")"
+    [[ -n "$id" ]] || {
+        echo "Uso: hyper-wallpaper engine <workshop_id>"
+        echo "Sugerido para el tema Crimson: 1180974281 (Black and red Abstract)"
+        exit 1
+    }
+
+    command -v linux-wallpaperengine >/dev/null || {
+        echo "linux-wallpaperengine no está instalado. Ejecuta: yay -S linux-wallpaperengine-git"
+        exit 1
+    }
+
+    local ws
+    ws="$(find_workshop)" || {
+        echo "No se encuentra el directorio de la Workshop de Wallpaper Engine."
+        echo "Descarga el fondo desde Steam (necesitas Wallpaper Engine) o con steamcmd:"
+        echo "  steamcmd +login <usuario> +workshop_download_item $WE_APPID $id +quit"
+        exit 1
+    }
+
+    [[ -d "$ws/$id" ]] || {
+        echo "El fondo $id no está descargado en $ws."
+        echo "Suscríbete en la Workshop desde Steam, o usa steamcmd (ver arriba)."
+        exit 1
+    }
+
+    # hyprpaper fuera: dos gestores de fondo pelearían por la capa background.
+    pkill -x hyprpaper 2>/dev/null || true
+    stop_engine
+
+    # Animado solo en el monitor principal; el vertical mantiene el estático
+    # implícito del último frame. FPS limitado: 144 en un fondo es tirar vatios.
+    linux-wallpaperengine --screen-root DP-1 --fps 60 --silent "$ws/$id" &
+    disown
+    echo "$id" > "$DEFAULT_ID_FILE"
+    echo engine > "$STATE"
+    echo "Fondo animado $id activo en DP-1 (60 fps)."
+}
+
+case "${1:-status}" in
+    static)  mode_static ;;
+    engine)  shift || true; mode_engine "${1:-}" ;;
+    toggle)
+        if [[ "$(cat "$STATE" 2>/dev/null)" == "engine" ]]; then
+            mode_static
+        else
+            mode_engine ""
+        fi
+        ;;
+    status)
+        echo "modo: $(cat "$STATE" 2>/dev/null || echo static)"
+        [[ -f "$DEFAULT_ID_FILE" ]] && echo "workshop id: $(cat "$DEFAULT_ID_FILE")"
+        ;;
+    *) echo "uso: hyper-wallpaper {static|engine <id>|toggle|status}" ;;
+esac

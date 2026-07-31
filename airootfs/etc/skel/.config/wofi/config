@@ -1,0 +1,7 @@
+show=drun
+allow_images=true
+image_size=24
+insensitive=true
+prompt=buscar
+width=520
+height=380

@@ -1,0 +1,9 @@
+[Unit]
+Description=Weekly backup — solo corre si el disco externo está montado
+
+[Timer]
+OnCalendar=Sun 20:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

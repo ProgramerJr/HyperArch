@@ -1,0 +1,17 @@
+# MongoDB bajo demanda. Nunca instalado en el host.
+#   mongo-up / mongo-down
+services:
+  mongodb:
+    image: mongo:7
+    container_name: hyperarch-mongo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: hyperarch
+
+volumes:
+  mongo-data:

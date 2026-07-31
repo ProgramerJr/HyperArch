@@ -1,0 +1,6 @@
+[Unit]
+Description=HyperArch weekly backup (restic)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/hyper-backup run

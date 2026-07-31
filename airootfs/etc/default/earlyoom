@@ -1,0 +1,7 @@
+# HyperArch — earlyoom
+#
+# Con 64 GB de RAM, actuar tarde: -m 3 -s 3 significa intervenir solo cuando
+# quedan menos del 3% de RAM y swap. Antes de eso, avisar (-r 3600).
+# Nunca tocar procesos críticos del sistema ni del escritorio.
+
+EARLYOOM_ARGS="-r 3600 -m 3 -s 3 --avoid '(^|/)(systemd|Hyprland|waybar|dockerd|containerd|sshd|pipewire|wireplumber)$' --prefer '(^|/)(chrome|chromium|brave|electron|code)$'"

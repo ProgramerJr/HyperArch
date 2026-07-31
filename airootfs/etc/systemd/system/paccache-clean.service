@@ -1,0 +1,7 @@
+[Unit]
+Description=Clean pacman cache (keep 2 versions)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/paccache -rk2
+ExecStart=/usr/bin/paccache -ruk0

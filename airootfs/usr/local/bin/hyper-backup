@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# hyper-backup — copia de seguridad real con restic.
+#
+# LOS SNAPSHOTS NO SON BACKUP: viven en el mismo NVMe. Si el disco muere,
+# mueren con él. Esto respalda /home cifrado contra un disco externo.
+#
+#   hyper-backup init /run/media/$USER/MiHDD     (una vez)
+#   hyper-backup run                              (manual o por timer)
+#   hyper-backup list | restore <id> <destino>
+set -euo pipefail
+
+CFG="$HOME/.config/hyperarch/backup.conf"
+[[ -f "$CFG" ]] && source "$CFG"
+
+case "${1:-}" in
+    init)
+        [[ -n "${2:-}" ]] || { echo "uso: hyper-backup init <ruta-disco-externo>"; exit 1; }
+        [[ -d "$2" ]] || { echo "$2 no existe. ¿Está montado el disco?"; exit 1; }
+        REPO="$2/hyperarch-backup"
+        read -rsp "Contraseña del repositorio (guárdala fuera del PC): " PW; echo
+        mkdir -p "$(dirname "$CFG")"
+        printf "REPO=%q\nRESTIC_PASSWORD=%q\n" "$REPO" "$PW" > "$CFG"
+        chmod 600 "$CFG"
+        export RESTIC_PASSWORD="$PW"
+        restic -r "$REPO" init
+        echo "Repositorio creado. Lanza copias con: hyper-backup run"
+        ;;
+    run)
+        [[ -n "${REPO:-}" ]] || { echo "Sin configurar. Primero: hyper-backup init <ruta>"; exit 1; }
+        [[ -d "$REPO" ]] || { echo "Repositorio no accesible (¿disco desconectado?)"; exit 1; }
+        export RESTIC_PASSWORD
+        restic -r "$REPO" backup "$HOME" \
+            --exclude "$HOME/.cache" \
+            --exclude "$HOME/.local/share/Steam" \
+            --exclude "$HOME/.local/share/Trash" \
+            --exclude "$HOME/node_modules" \
+            --exclude-if-present .nobackup
+        restic -r "$REPO" forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+        ;;
+    list)    export RESTIC_PASSWORD; restic -r "$REPO" snapshots ;;
+    restore) export RESTIC_PASSWORD; restic -r "$REPO" restore "${2:?id}" --target "${3:?destino}" ;;
+    *) echo "uso: hyper-backup {init <ruta>|run|list|restore <id> <destino>}" ;;
+esac

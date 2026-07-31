@@ -1,0 +1,7 @@
+[SddmGreeterTheme]
+Name=HyperArch
+Author=HyperArch
+Type=sddm-theme
+MainScript=Main.qml
+Theme-Id=hyperarch
+QtVersion=6

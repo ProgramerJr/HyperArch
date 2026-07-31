@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# hyper-focus-mode — modo de concentración (FR-15).
+# Distinto de Modo Producción: aquel va de coste de render, este de atención.
+set -euo pipefail
+
+STATE="${XDG_RUNTIME_DIR:-/tmp}/hyperarch/focus.state"
+mkdir -p "$(dirname "$STATE")"
+
+focus_on() {
+    pkill -SIGUSR1 waybar 2>/dev/null || true    # ocultar barra
+    makoctl mode -a do-not-disturb
+    hyprctl keyword general:gaps_in 0
+    hyprctl keyword general:gaps_out 0
+    echo on > "$STATE"
+}
+
+focus_off() {
+    pkill -SIGUSR1 waybar 2>/dev/null || true    # mostrar barra
+    makoctl mode -r do-not-disturb
+    hyprctl reload
+    rm -f "$STATE"
+    notify-send -t 1500 "HyperArch" "Modo Foco desactivado"
+}
+
+case "${1:-toggle}" in
+    on)     focus_on ;;
+    off)    focus_off ;;
+    toggle) [[ -f "$STATE" ]] && focus_off || focus_on ;;
+    status) [[ -f "$STATE" ]] && echo on || echo off ;;
+esac

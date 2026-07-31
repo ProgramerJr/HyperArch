@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+"""
+hyper-ai — optimizador adaptativo de recursos de HyperArch.
+
+Arquitectura en dos capas (AI-07: degradación elegante):
+
+  Capa 1 — REGLAS DETERMINISTAS. Siempre activa. No necesita modelo.
+           Si el runtime de inferencia cae, el sistema sigue optimizándose.
+  Capa 2 — LLM LOCAL. Opcional. Aporta diagnóstico y detecta patrones que
+           las reglas no cubren. Nunca es punto único de fallo.
+
+Política de acciones (FR-07):
+  AUTO    → reversible, acotada y de bajo riesgo. Se aplica sola.
+  SUGGEST → todo lo demás. Se registra, nunca se ejecuta automáticamente.
+
+No existe una categoría "destructiva automática". Por diseño.
+"""
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import time
+import urllib.error
+import urllib.request
+from dataclasses import dataclass, field, asdict
+
+# ─────────────────────────── Configuración ───────────────────────────────
+
+CONFIG_PATH = "/etc/hyperarch/ai.json"
+STATE_DIR = "/run/hyper-ai"
+LOG_PATH = "/var/log/hyper-ai.log"
+
+DEFAULTS = {
+    "enabled": True,
+    "model": "qwen2.5:7b-instruct-q4_K_M",
+    "endpoint": "http://127.0.0.1:11434/api/generate",
+    "interval_seconds": 120,
+    "vram_ceiling_gb": 6,
+    "autonomy": "safe-only",
+}
+
+# Procesos de fondo cuya prioridad se puede bajar sin romper nada.
+RENICE_ALLOWLIST = {
+    "baloo_file", "tracker-miner-fs", "tracker-extract", "packagekitd",
+    "updatedb", "mandb", "plocate", "fwupd", "rsync",
+}
+
+# Procesos que NUNCA se tocan, pase lo que pase.
+PROTECTED = {
+    "systemd", "Hyprland", "waybar", "dockerd", "containerd", "sshd",
+    "pipewire", "wireplumber", "hyper-ai", "ollama",
+}
+
+
+def load_config() -> dict:
+    cfg = dict(DEFAULTS)
+    try:
+        with open(CONFIG_PATH) as f:
+            cfg.update(json.load(f))
+    except (OSError, json.JSONDecodeError):
+        pass
+    return cfg
+
+
+def log(msg: str) -> None:
+    line = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}"
+    print(line, flush=True)
+    try:
+        with open(LOG_PATH, "a") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass
+
+
+def publish(text: str, tooltip: str = "") -> None:
+    """Estado corto para el módulo de Waybar."""
+    os.makedirs(STATE_DIR, exist_ok=True)
+    payload = {"text": text, "tooltip": tooltip, "class": "ok"}
+    with open(os.path.join(STATE_DIR, "status.json"), "w") as f:
+        json.dump(payload, f)
+
+
+# ─────────────────────────── Telemetría ──────────────────────────────────
+
+@dataclass
+class Telemetry:
+    cpu_percent: float = 0.0
+    load_1m: float = 0.0
+    ram_percent: float = 0.0
+    ram_available_gb: float = 0.0
+    swap_percent: float = 0.0
+    disk_percent: float = 0.0
+    disk_free_gb: float = 0.0
+    gpu_busy_percent: float = 0.0
+    vram_used_gb: float = 0.0
+    vram_total_gb: float = 0.0
+    cpu_temp_c: float = 0.0
+    top_processes: list = field(default_factory=list)
+    docker_containers: int = 0
+
+
+def read_gpu() -> tuple:
+    """Uso de GPU y VRAM vía rocm-smi. Devuelve (busy%, usada_gb, total_gb)."""
+    if not shutil.which("rocm-smi"):
+        return (0.0, 0.0, 0.0)
+    try:
+        out = subprocess.run(
+            ["rocm-smi", "--showuse", "--showmemuse", "--json"],
+            capture_output=True, text=True, timeout=8,
+        ).stdout
+        data = json.loads(out)
+        card = next(iter(data.values()))
+        busy = float(re.sub(r"[^\d.]", "", card.get("GPU use (%)", "0") or "0"))
+        used = float(card.get("VRAM Total Used Memory (B)", 0)) / 1e9
+        total = float(card.get("VRAM Total Memory (B)", 0)) / 1e9
+        return (busy, used, total)
+    except Exception:
+        return (0.0, 0.0, 0.0)
+
+
+def read_cpu_temp() -> float:
+    try:
+        import psutil
+        temps = psutil.sensors_temperatures()
+        for key in ("k10temp", "zenpower", "coretemp"):
+            if key in temps and temps[key]:
+                return float(temps[key][0].current)
+    except Exception:
+        pass
+    return 0.0
+
+
+def collect() -> Telemetry:
+    import psutil
+
+    vm = psutil.virtual_memory()
+    sw = psutil.swap_memory()
+    du = psutil.disk_usage("/")
+
+    procs = []
+    for p in psutil.process_iter(["pid", "name", "cpu_percent", "memory_percent"]):
+        try:
+            procs.append(p.info)
+        except psutil.Error:
+            continue
+    procs.sort(key=lambda x: x.get("cpu_percent") or 0, reverse=True)
+
+    containers = 0
+    if shutil.which("docker"):
+        try:
+            r = subprocess.run(["docker", "ps", "-q"], capture_output=True,
+                               text=True, timeout=5)
+            containers = len([l for l in r.stdout.splitlines() if l.strip()])
+        except Exception:
+            pass
+
+    busy, vused, vtotal = read_gpu()
+
+    return Telemetry(
+        cpu_percent=psutil.cpu_percent(interval=1),
+        load_1m=os.getloadavg()[0],
+        ram_percent=vm.percent,
+        ram_available_gb=round(vm.available / 1e9, 1),
+        swap_percent=sw.percent,
+        disk_percent=du.percent,
+        disk_free_gb=round(du.free / 1e9, 1),
+        gpu_busy_percent=busy,
+        vram_used_gb=round(vused, 1),
+        vram_total_gb=round(vtotal, 1),
+        cpu_temp_c=read_cpu_temp(),
+        top_processes=procs[:8],
+        docker_containers=containers,
+    )
+
+
+# ──────────────────── Capa 1: reglas deterministas ───────────────────────
+
+def rule_layer(t: Telemetry) -> list:
+    """
+    Acciones AUTO. Todas reversibles, acotadas y sin pérdida de datos.
+    Funciona sin modelo: es la red de seguridad del sistema.
+    """
+    applied = []
+
+    # 1. Bajar prioridad de indexadores cuando la CPU está saturada.
+    if t.cpu_percent > 85:
+        for p in t.top_processes:
+            name = p.get("name", "")
+            if name in PROTECTED:
+                continue
+            if name in RENICE_ALLOWLIST:
+                try:
+                    os.setpriority(os.PRIO_PROCESS, p["pid"], 15)
+                    applied.append(f"renice +15 {name} (pid {p['pid']})")
+                except (OSError, ProcessLookupError):
+                    pass
+
+    # 2. Con 64 GB, tocar swap antes de tiempo es contraproducente.
+    if t.ram_available_gb < 6 and t.swap_percent < 5:
+        subprocess.run(["sysctl", "-qw", "vm.swappiness=10"], check=False)
+        applied.append("vm.swappiness=10 (RAM libre baja)")
+    elif t.ram_available_gb > 32:
+        subprocess.run(["sysctl", "-qw", "vm.swappiness=1"], check=False)
+        applied.append("vm.swappiness=1 (RAM abundante)")
+
+    # 3. Presión de caché de directorios cuando la RAM aprieta.
+    if t.ram_percent > 92:
+        subprocess.run(["sysctl", "-qw", "vm.vfs_cache_pressure=200"], check=False)
+        applied.append("vfs_cache_pressure=200")
+
+    return applied
+
+
+def rule_suggestions(t: Telemetry) -> list:
+    """Acciones SUGGEST: se registran, jamás se ejecutan solas."""
+    s = []
+    if t.disk_free_gb < 50:
+        s.append(f"Disco con {t.disk_free_gb} GB libres. Revisa: "
+                 "`docker system df`, `paccache -d`, snapshots antiguas de Snapper.")
+    if t.cpu_temp_c > 85:
+        s.append(f"CPU a {t.cpu_temp_c}°C. Revisa curva de ventiladores o perfil de carga.")
+    if t.vram_total_gb and t.vram_used_gb / t.vram_total_gb > 0.9:
+        s.append("VRAM por encima del 90%. Considera descargar el modelo de IA.")
+    if t.docker_containers > 12:
+        s.append(f"{t.docker_containers} contenedores activos. "
+                 "`docker ps` para revisar cuáles siguen haciendo falta.")
+    if t.swap_percent > 40:
+        s.append("Uso de swap alto pese a 64 GB de RAM: posible fuga de memoria.")
+    return s
+
+
+# ─────────────────────── Capa 2: LLM local (opcional) ────────────────────
+
+PROMPT = """Eres el optimizador de recursos de una estación de trabajo Linux.
+Hardware: Ryzen 9 7900X3D (12C/24T, dos CCD, V-Cache en CCD0), Radeon RX 7900 XTX
+24 GB, 64 GB RAM, NVMe 4 TB con Btrfs.
+
+Analiza la telemetría y responde SOLO con JSON válido, sin texto adicional:
+{{"status":"máx 4 palabras","diagnosis":"1-2 frases en español","suggestions":["..."]}}
+
+No propongas borrar ficheros ni matar procesos de usuario.
+
+Telemetría:
+{telemetry}
+"""
+
+
+def ask_model(cfg: dict, t: Telemetry) -> dict | None:
+    payload = json.dumps({
+        "model": cfg["model"],
+        "prompt": PROMPT.format(telemetry=json.dumps(asdict(t), ensure_ascii=False)),
+        "stream": False,
+        "options": {"temperature": 0.1, "num_predict": 300},
+    }).encode()
+
+    req = urllib.request.Request(
+        cfg["endpoint"], data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            raw = json.loads(resp.read())["response"]
+    except (urllib.error.URLError, OSError, KeyError, json.JSONDecodeError):
+        return None
+
+    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.MULTILINE).strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+
+
+# ──────────────────────────── Bucle principal ────────────────────────────
+
+def main() -> None:
+    cfg = load_config()
+    log(f"hyper-ai iniciado (modelo: {cfg['model']}, intervalo: {cfg['interval_seconds']}s)")
+    publish("󰚩 IA: iniciando")
+
+    while True:
+        try:
+            t = collect()
+
+            # Capa 1 siempre. Es la que garantiza el servicio.
+            applied = rule_layer(t)
+            suggestions = rule_suggestions(t)
+
+            # Capa 2 si está disponible. Enriquece, no sustituye.
+            model_result = ask_model(cfg, t) if cfg.get("enabled") else None
+
+            if model_result:
+                status = model_result.get("status", "sistema estable")
+                diagnosis = model_result.get("diagnosis", "")
+                suggestions += model_result.get("suggestions", [])
+            else:
+                status = "reglas activas"
+                diagnosis = "Runtime de inferencia no disponible; capa determinista operativa."
+
+            tooltip = (
+                f"CPU {t.cpu_percent:.0f}%  RAM {t.ram_percent:.0f}%  "
+                f"GPU {t.gpu_busy_percent:.0f}%  VRAM {t.vram_used_gb}/{t.vram_total_gb} GB\n"
+                f"{diagnosis}"
+            )
+            publish(f"󰚩 {status}", tooltip)
+
+            if applied:
+                log(f"AUTO aplicado: {applied}")
+            for s in suggestions:
+                log(f"SUGERENCIA: {s}")
+
+        except Exception as e:
+            publish("󰚩 IA: error", str(e))
+            log(f"Error en ciclo: {e}")
+
+        time.sleep(cfg["interval_seconds"])
+
+
+if __name__ == "__main__":
+    main()

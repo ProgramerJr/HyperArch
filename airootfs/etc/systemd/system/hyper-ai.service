@@ -1,0 +1,19 @@
+[Unit]
+Description=HyperArch AI resource optimizer
+After=network.target ollama.service
+Wants=ollama.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/hyper-ai
+Restart=on-failure
+RestartSec=15
+RuntimeDirectory=hyper-ai
+Nice=10
+# La IA nunca debe competir por recursos con lo que optimiza.
+CPUWeight=20
+IOWeight=20
+MemoryMax=2G
+
+[Install]
+WantedBy=multi-user.target
