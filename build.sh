@@ -12,6 +12,10 @@
 #
 set -euo pipefail
 
+# Git Bash (MSYS) reescribe rutas que empiezan por "/" al pasarlas a
+# procesos nativos de Windows. Esto rompe los montajes de Docker.
+export MSYS_NO_PATHCONV=1
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT="$HERE/out"
 WORK="$HERE/.work"
@@ -52,7 +56,7 @@ say "Lanzando contenedor de compilación"
 TTY_FLAGS=()
 [ -t 0 ] && TTY_FLAGS=(-it)
 
-docker run --rm "${TTY_FLAGS[@]}" \
+MSYS_NO_PATHCONV=1 docker run --rm "${TTY_FLAGS[@]}" \
     --privileged \
     -v "$HERE:/src:ro" \
     -v "$OUT:/out" \
