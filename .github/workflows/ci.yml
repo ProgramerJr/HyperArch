@@ -41,16 +41,3 @@ jobs:
             [ "$n" -gt 0 ]
           done
 
-  build-iso:
-    name: Build ISO (manual)
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build in Arch container
-        run: ./build.sh
-      - name: Upload checksums
-        uses: actions/upload-artifact@v4
-        with:
-          name: checksums
-          path: out/SHA256SUMS
