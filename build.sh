@@ -12,15 +12,11 @@
 #
 set -euo pipefail
 
-# Git Bash (MSYS) reescribe rutas que empiezan por "/" al pasarlas a
-# procesos nativos de Windows. Esto rompe los montajes de Docker.
-export MSYS_NO_PATHCONV=1
-
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT="$HERE/out"
 WORK="$HERE/.work"
 
-A=$'\e[1;31m'; G=$'\e[1;32m'; Y=$'\e[1;33m'; D=$'\e[0;90m'; R=$'\e[0m'
+A=$'\e[1;34m'; G=$'\e[1;32m'; Y=$'\e[1;33m'; D=$'\e[0;90m'; R=$'\e[0m'
 say()  { echo "${G}::${R} $*"; }
 warn() { echo "${Y}!!${R} $*"; }
 die()  { echo "${A}xx${R} $*" >&2; exit 1; }
@@ -50,18 +46,14 @@ check() {
 
 banner
 check
-mkdir -p "$OUT" "$WORK" "$HERE/.pkgcache"
+mkdir -p "$OUT" "$WORK"
 
 say "Lanzando contenedor de compilación"
-TTY_FLAGS=()
-[ -t 0 ] && TTY_FLAGS=(-it)
-
-MSYS_NO_PATHCONV=1 docker run --rm "${TTY_FLAGS[@]}" \
+docker run --rm -it \
     --privileged \
     -v "$HERE:/src:ro" \
     -v "$OUT:/out" \
     -v "$WORK:/work" \
-    -v "$HERE/.pkgcache:/var/cache/pacman/pkg" \
     archlinux:latest \
     bash -euo pipefail -c '
         echo ":: Preparando entorno de compilación"
@@ -88,8 +80,6 @@ MSYS_NO_PATHCONV=1 docker run --rm "${TTY_FLAGS[@]}" \
         done
         # multilib dentro de la ISO
         sed -i "/^#\[multilib\]/,+1 s/^#//" pacman.conf
-        # grml-zsh-config trae su propio /etc/skel/.zshrc y choca con el nuestro
-        sed -i "/^grml-zsh-config$/d" packages.x86_64
         sort -u packages.x86_64 -o packages.x86_64
         echo "   $(wc -l < packages.x86_64) paquetes"
 
