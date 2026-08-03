@@ -94,7 +94,7 @@ mount "$ESP" /mnt/boot
 
 # ── Sistema base ──────────────────────────────────────────────────────────
 say "Instalando sistema base (esto tarda)"
-PKG_DIR="$(dirname "$(readlink -f "$0")")/../packages"
+PKG_DIR="${HYPERARCH_PKG_DIR:-/root/packages}"
 mapfile -t PKGS < <(cat "$PKG_DIR"/{base,gpu,desktop,terminal,development,multimedia,gaming,ai}.txt \
                     | grep -vE '^\s*(#|$)')
 
@@ -105,7 +105,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 # ── Overlay de configuración ──────────────────────────────────────────────
 say "Aplicando configuración de HyperArch"
-cp -r "$(dirname "$(readlink -f "$0")")/../airootfs/." /mnt/
+cp -r /root/airootfs/. /mnt/
 
 # ── Configuración dentro del chroot ───────────────────────────────────────
 say "Configurando el sistema"

@@ -101,6 +101,7 @@ docker run --rm "${TTY_FLAGS[@]}" \
         chmod +x airootfs/usr/local/bin/hyperarch-install
         mkdir -p airootfs/root
         cp -r /src/packages airootfs/root/packages
+        cp -r /src/airootfs airootfs/root/airootfs
 
         chmod +x airootfs/usr/local/bin/hyper-* 2>/dev/null || true
         find airootfs/etc/skel -name "*.sh" -exec chmod +x {} + 2>/dev/null || true
