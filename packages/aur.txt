@@ -8,3 +8,5 @@ mongodb-compass
 bibata-cursor-theme
 linux-wallpaperengine-git
 steamcmd
+protonup-qt
+papirus-folders

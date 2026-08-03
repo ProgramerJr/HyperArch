@@ -1,13 +1,6 @@
 <div align="center">
 
-```
-██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗
-██║  ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗
-███████║ ╚████╔╝ ██████╔╝█████╗  ██████╔╝
-██╔══██║  ╚██╔╝  ██╔═══╝ ██╔══╝  ██╔══██╗
-██║  ██║   ██║   ██║     ███████╗██║  ██║
-╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚══════╝╚═╝  ╚═╝
-```
+<img src="branding/logo/hyperarch-logo-blue-512.png" width="320" alt="HyperArch">
 
 **A Linux workstation with a built-in system AI**
 
@@ -137,6 +130,11 @@ hyper-ccd cache <program>         # pin to the V-Cache CCD
 hyper-update                      # snapshot → system → AUR → cleanup
 hyper-backup init|run             # real backups (restic, external disk)
 hyper-wallpaper engine <id>       # animated Workshop wallpaper
+hyper-help                        # shortcut cheatsheet (also SUPER+F1)
+hyper-ai ask "why is it slow?"    # query the AI with live telemetry
+hyper-ai review                   # what the AI did and suggested
+hyper-new react|java|api <name>   # scaffold a project with the full stack
+hyper-secrets init|edit           # encrypt credentials at rest (GPG)
 mongo-up / mongo-down             # MongoDB in a container
 snap-list                         # system snapshots
 ```

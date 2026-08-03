@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Notificación de escritorio cuando smartd detecta un problema de disco.
+MSG="${SMARTD_MESSAGE:-Problema detectado en un disco}"
+DEV="${SMARTD_DEVICE:-desconocido}"
+logger -t hyper-disk-alert "$DEV: $MSG"
+for uid in $(loginctl list-users --no-legend | awk '{print $1}'); do
+    user=$(id -nu "$uid" 2>/dev/null) || continue
+    sudo -u "$user" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" \
+        notify-send -u critical "Disco: $DEV" "$MSG" 2>/dev/null || true
+done

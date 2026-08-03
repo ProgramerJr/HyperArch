@@ -18,9 +18,13 @@ case "${1:-status}" in
         ;;
     gaming)
         gov performance
-        # Los juegos se benefician del CCD con V-Cache.
-        notify-send "HyperArch" "Perfil: Gaming (sesgo a CCD0 V-Cache)"
-        echo "Lanza juegos con: hyper-ccd cache <juego>"
+        sudo sysctl -qw vm.swappiness=1
+        # Steam y los juegos al CCD con V-Cache: menos latencia, más FPS
+        # en títulos sensibles a caché. El resto del sistema usa CCD1.
+        for pid in $(pgrep -f "steam|gamescope" 2>/dev/null); do
+            taskset -pc 0-5,12-17 "$pid" >/dev/null 2>&1 || true
+        done
+        notify-send "HyperArch" "Perfil: Gaming (CCD0 V-Cache priorizado)"
         ;;
     silent)
         gov powersave

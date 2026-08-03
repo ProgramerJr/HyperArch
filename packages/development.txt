@@ -17,3 +17,9 @@ edk2-ovmf
 ccache
 github-cli
 chromium
+mise
+atuin
+adw-gtk3
+kvantum
+qt5ct
+kdeconnect

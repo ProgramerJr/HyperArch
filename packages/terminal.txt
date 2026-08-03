@@ -17,3 +17,5 @@ p7zip
 tmux
 zsh-autosuggestions
 zsh-syntax-highlighting
+direnv
+tealdeer

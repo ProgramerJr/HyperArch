@@ -1,13 +1,6 @@
 <div align="center">
 
-```
-██╗  ██╗██╗   ██╗██████╗ ███████╗██████╗
-██║  ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗
-███████║ ╚████╔╝ ██████╔╝█████╗  ██████╔╝
-██╔══██║  ╚██╔╝  ██╔═══╝ ██╔══╝  ██╔══██╗
-██║  ██║   ██║   ██║     ███████╗██║  ██║
-╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚══════╝╚═╝  ╚═╝
-```
+<img src="branding/logo/hyperarch-logo-blue-512.png" width="320" alt="HyperArch">
 
 **Estación de trabajo Linux con IA de sistema integrada**
 
@@ -135,6 +128,14 @@ hyper-production-mode benchmark   # mide el ahorro real de GPU
 hyper-profile dev|ai|gaming|silent
 hyper-ccd info               # topología de CCD del 7900X3D
 hyper-ccd cache <programa>   # fijar al CCD con V-Cache
+hyper-help                   # chuleta de atajos (también SUPER+F1)
+hyper-ai ask "¿va lento?"    # preguntar a la IA con telemetría en vivo
+hyper-ai review              # qué ha hecho y sugerido la IA
+hyper-new react|java|api     # crear proyecto con el stack completo
+hyper-secrets init|edit      # cifrar credenciales en reposo (GPG)
+hyper-update                 # snapshot → sistema → AUR → limpieza
+hyper-backup run             # copia de seguridad (disco externo)
+hyper-wallpaper engine <id>  # fondo animado de la Workshop
 mongo-up / mongo-down        # MongoDB en contenedor
 snap-list                    # snapshots del sistema
 hai                          # log de la IA en vivo

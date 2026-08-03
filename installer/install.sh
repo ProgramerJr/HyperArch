@@ -13,10 +13,10 @@ DISK="${1:-}"
 HOSTNAME_DEFAULT="hyperarch"
 USERNAME_DEFAULT="hyper"
 
-RED=$'\e[1;31m'; GRN=$'\e[1;32m'; YEL=$'\e[1;33m'; RST=$'\e[0m'
+BLUE=$'\e[1;34m'; GRN=$'\e[1;32m'; YEL=$'\e[1;33m'; RST=$'\e[0m'
 say()  { echo "${GRN}::${RST} $*"; }
 warn() { echo "${YEL}!!${RST} $*"; }
-die()  { echo "${RED}xx${RST} $*" >&2; exit 1; }
+die()  { echo "${BLUE}xx${RST} $*" >&2; exit 1; }
 
 # ── Comprobaciones ────────────────────────────────────────────────────────
 [[ $EUID -eq 0 ]] || die "Ejecuta como root."
@@ -28,7 +28,7 @@ SIZE=$(lsblk -bdno SIZE "$DISK")
 MODEL=$(lsblk -dno MODEL "$DISK" || echo "desconocido")
 
 echo
-echo "  ${RED}HyperArch${RST} — instalación"
+echo "  ${BLUE}HyperArch${RST} — instalación"
 echo "  ─────────────────────────────────────────"
 echo "  Disco   : $DISK ($MODEL)"
 echo "  Tamaño  : $((SIZE / 1000000000)) GB"
@@ -159,7 +159,7 @@ mkinitcpio -P
 
 # Servicios
 systemctl enable NetworkManager sddm docker libvirtd earlyoom ufw fstrim.timer bluetooth
-systemctl enable btrfs-scrub@-.timer paccache-clean.timer
+systemctl enable btrfs-scrub@-.timer paccache-clean.timer smartd
 systemctl enable snapper-timeline.timer snapper-cleanup.timer grub-btrfsd
 systemctl enable ollama hyper-ai
 

@@ -16,8 +16,8 @@ Rectangle {
         anchors.centerIn: parent
         width: 380; height: 300
         radius: 16
-        color: "#cc0f0d0e"
-        border.color: "#ff1e3c"
+        color: "#cc0d0f14"
+        border.color: "#2f9bff"
         border.width: 2
 
         Column {
@@ -25,22 +25,13 @@ Rectangle {
             spacing: 18
             width: parent.width - 60
 
-            Text {
-                text: "HyperArch"
-                color: "#ff1e3c"
-                font.pixelSize: 26
-                font.family: "JetBrains Mono"
-                font.bold: true
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-
             TextField {
                 id: user
                 width: parent.width
                 text: userModel.lastUser
                 placeholderText: "usuario"
-                color: "#f3d6d9"
-                background: Rectangle { color: "#090909"; radius: 8; border.color: "#8b0020" }
+                color: "#d6e4f3"
+                background: Rectangle { color: "#090909"; radius: 8; border.color: "#6d3cff" }
             }
 
             TextField {
@@ -48,9 +39,9 @@ Rectangle {
                 width: parent.width
                 echoMode: TextInput.Password
                 placeholderText: "contraseña"
-                color: "#f3d6d9"
+                color: "#d6e4f3"
                 focus: true
-                background: Rectangle { color: "#090909"; radius: 8; border.color: "#8b0020" }
+                background: Rectangle { color: "#090909"; radius: 8; border.color: "#6d3cff" }
                 Keys.onReturnPressed: sddm.login(user.text, pass.text, session.currentIndex)
             }
 
@@ -63,7 +54,7 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                     font.bold: true
                 }
-                background: Rectangle { color: "#ff1e3c"; radius: 8 }
+                background: Rectangle { color: "#2f9bff"; radius: 8 }
             }
 
             ComboBox {

@@ -29,3 +29,5 @@ bluez
 bluez-utils
 blueman
 hyprsunset
+swappy
+python-pywal
