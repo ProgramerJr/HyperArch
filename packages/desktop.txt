@@ -31,3 +31,4 @@ blueman
 hyprsunset
 swappy
 python-pywal
+xorg-xwayland
