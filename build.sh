@@ -67,7 +67,7 @@ docker run --rm "${TTY_FLAGS[@]}" \
         pacman -Sy --noconfirm --needed archiso git jq >/dev/null
 
         # multilib: necesario para Steam y librerías de 32 bits
-        sed -i "/^#\[multilib\]/,+1 s/^#//" /etc/pacman.conf
+        grep -q "^\[multilib\]" /etc/pacman.conf || printf "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> /etc/pacman.conf
         pacman -Sy >/dev/null
 
         PROFILE=/work/profile
@@ -86,7 +86,7 @@ docker run --rm "${TTY_FLAGS[@]}" \
             grep -vE "^\s*(#|$)" "/src/packages/$f.txt" >> packages.x86_64
         done
         # multilib dentro de la ISO
-        sed -i "/^#\[multilib\]/,+1 s/^#//" pacman.conf
+        grep -q "^\[multilib\]" pacman.conf || printf "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> pacman.conf
         sort -u packages.x86_64 -o packages.x86_64
         echo "   $(wc -l < packages.x86_64) paquetes"
 
