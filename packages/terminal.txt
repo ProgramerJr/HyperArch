@@ -13,7 +13,7 @@ jq
 curl
 wget
 unzip
-p7zip
+7zip
 tmux
 zsh-autosuggestions
 zsh-syntax-highlighting

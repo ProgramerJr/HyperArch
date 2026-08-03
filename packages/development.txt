@@ -19,7 +19,10 @@ github-cli
 chromium
 mise
 atuin
-adw-gtk3
 kvantum
 qt5ct
 kdeconnect
+lazydocker
+lact
+distrobox
+tailscale
