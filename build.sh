@@ -88,7 +88,7 @@ docker run --rm "${TTY_FLAGS[@]}" \
         # multilib dentro de la ISO
         grep -q "^\[multilib\]" pacman.conf || printf "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> pacman.conf
         # grml-zsh-config trae su propio /etc/skel/.zshrc y choca con el nuestro
-        sed -i "/^grml-zsh-config$/d" packages.x86_64
+        sed -i "/^grml-zsh-config$/d;/^xorg-server$/d" packages.x86_64
         sort -u packages.x86_64 -o packages.x86_64
         echo "   $(wc -l < packages.x86_64) paquetes"
 
