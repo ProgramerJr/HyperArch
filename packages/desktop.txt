@@ -1,6 +1,5 @@
 hyprland
 xdg-desktop-portal-hyprland
-sddm
 qt5-wayland
 qt6-wayland
 polkit-gnome
@@ -32,3 +31,5 @@ hyprsunset
 swappy
 python-pywal
 xorg-xwayland
+greetd
+greetd-tuigreet

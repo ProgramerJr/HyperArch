@@ -1,0 +1,6 @@
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --remember --cmd Hyprland --greeting 'HyperArch' --theme 'border=blue;text=white;prompt=blue;time=blue;action=blue;button=blue;container=black;input=white'"
+user = "greeter"

@@ -9,7 +9,7 @@ gradle
 docker
 docker-compose
 docker-buildx
-qemu-full
+qemu-desktop
 libvirt
 virt-manager
 dnsmasq
