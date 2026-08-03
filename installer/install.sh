@@ -158,7 +158,7 @@ plymouth-set-default-theme hyperarch || true
 mkinitcpio -P
 
 # Servicios
-systemctl enable NetworkManager sddm docker libvirtd earlyoom ufw fstrim.timer bluetooth
+systemctl enable NetworkManager greetd docker libvirtd earlyoom ufw fstrim.timer bluetooth
 systemctl enable btrfs-scrub@-.timer paccache-clean.timer smartd
 systemctl enable snapper-timeline.timer snapper-cleanup.timer grub-btrfsd
 systemctl enable ollama hyper-ai
