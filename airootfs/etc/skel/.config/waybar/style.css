@@ -2,13 +2,15 @@
 
 @define-color bg        rgba(9, 9, 9, 0.72);
 @define-color surface   rgba(20, 16, 18, 0.55);
-@define-color accent    #ff1e3c;
-@define-color accentdim #8b0020;
-@define-color text      #f3d6d9;
-@define-color muted     #6b5658;
+@define-color accent    #2f9bff;
+@define-color accentdim #6d3cff;
+@define-color text      #d6e4f3;
+@define-color muted     #55606e;
+/* Estados semánticos. Deliberadamente FUERA de la paleta de marca:
+   el rojo solo significa error, nunca identidad. */
 @define-color ok        #4ade80;
 @define-color warn      #fbbf24;
-@define-color err       #ff1e3c;
+@define-color err       #ff3b5c;
 
 * {
   font-family: "JetBrainsMono Nerd Font";
@@ -103,4 +105,12 @@ tooltip {
 tooltip label {
   color: @text;
   padding: 4px;
+}
+
+#idle_inhibitor, #custom-updates {
+  padding: 0 9px;
+  color: @text;
+}
+#idle_inhibitor.activated {
+  color: @warn;
 }

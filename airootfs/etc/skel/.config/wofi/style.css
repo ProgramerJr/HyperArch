@@ -1,19 +1,19 @@
 window {
   background-color: rgba(9, 9, 9, 0.92);
-  border: 2px solid #ff1e3c;
+  border: 2px solid #2f9bff;
   border-radius: 14px;
   font-family: "JetBrainsMono Nerd Font";
 }
 #input {
-  background-color: #0f0d0e;
-  color: #f3d6d9;
+  background-color: #0d0f14;
+  color: #d6e4f3;
   border: none;
-  border-bottom: 2px solid #8b0020;
+  border-bottom: 2px solid #6d3cff;
   border-radius: 0;
   padding: 8px;
   margin: 8px;
 }
 #entry { padding: 6px 10px; border-radius: 8px; }
 #entry:selected { background-color: rgba(255, 30, 60, 0.18); }
-#text { color: #f3d6d9; }
-#text:selected { color: #ff1e3c; }
+#text { color: #d6e4f3; }
+#text:selected { color: #2f9bff; }

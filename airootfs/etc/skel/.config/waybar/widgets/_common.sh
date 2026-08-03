@@ -3,7 +3,14 @@
 # Los tokens NUNCA viajan en la ISO (FR-09): solo la plantilla .example.
 
 TOKENS="$HOME/.config/hyperarch/tokens.env"
-[ -f "$TOKENS" ] && . "$TOKENS"
+ENC="$HOME/.config/hyperarch/tokens.env.gpg"
+
+# Preferir la versión cifrada (SE-02). Nunca se escribe en disco en claro.
+if [ -f "$ENC" ] && command -v gpg >/dev/null 2>&1; then
+    eval "$(gpg --quiet --decrypt "$ENC" 2>/dev/null | grep -E '^[A-Z_]+=')"
+elif [ -f "$TOKENS" ]; then
+    . "$TOKENS"
+fi
 
 # out <texto> <tooltip> [clase css: ok|warn|err]
 out() {

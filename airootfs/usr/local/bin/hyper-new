@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+# hyper-new — crea proyectos con el stack de HyperArch ya montado.
+#
+#   hyper-new react <nombre>    Vite + React + TS + Tailwind + ESLint + Prettier
+#   hyper-new java  <nombre>    Maven + JDK 21 + JUnit 5
+#   hyper-new api   <nombre>    Node + Express + TS + MongoDB (docker compose)
+#
+# Cada plantilla deja también el perfil de VS Code correcto y un .mise.toml
+# con las versiones de runtime fijadas para el proyecto.
+set -euo pipefail
+
+A=$'\e[1;34m'; G=$'\e[1;32m'; R=$'\e[0m'
+say() { echo "${G}::${R} $*"; }
+die() { echo "error: $*" >&2; exit 1; }
+
+KIND="${1:-}"; NAME="${2:-}"
+[[ -n "$KIND" && -n "$NAME" ]] || die "uso: hyper-new {react|java|api} <nombre>"
+[[ -e "$NAME" ]] && die "'$NAME' ya existe"
+
+BASE="${HYPER_PROJECTS:-$HOME/proyectos}"
+mkdir -p "$BASE"
+cd "$BASE"
+
+case "$KIND" in
+
+react)
+    say "Creando proyecto React + TypeScript"
+    npm create vite@latest "$NAME" -- --template react-ts
+    cd "$NAME"
+    npm install
+    npm install -D tailwindcss @tailwindcss/vite eslint prettier \
+        eslint-config-prettier eslint-plugin-react-hooks
+
+    cat > .mise.toml <<'MISE'
+[tools]
+node = "lts"
+MISE
+
+    cat > .prettierrc <<'PRET'
+{
+  "semi": true,
+  "singleQuote": false,
+  "trailingComma": "all",
+  "printWidth": 90
+}
+PRET
+
+    mkdir -p .vscode
+    cat > .vscode/settings.json <<'VSC'
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+}
+VSC
+    PROFILE="Web-React"
+    ;;
+
+java)
+    say "Creando proyecto Java + Maven"
+    mvn -q archetype:generate \
+        -DgroupId="com.hyperarch.$NAME" \
+        -DartifactId="$NAME" \
+        -DarchetypeArtifactId=maven-archetype-quickstart \
+        -DarchetypeVersion=1.5 \
+        -DinteractiveMode=false
+    cd "$NAME"
+
+    cat > .mise.toml <<'MISE'
+[tools]
+java = "temurin-21"
+maven = "latest"
+MISE
+
+    mkdir -p .vscode
+    cat > .vscode/settings.json <<'VSC'
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "editor.formatOnSave": true
+}
+VSC
+    PROFILE="Java"
+    ;;
+
+api)
+    say "Creando API Node + Express + TypeScript"
+    mkdir -p "$NAME/src"
+    cd "$NAME"
+    npm init -y >/dev/null
+    npm install express mongoose dotenv
+    npm install -D typescript tsx @types/node @types/express
+
+    npx tsc --init --rootDir src --outDir dist --esModuleInterop \
+        --resolveJsonModule --module commonjs --target es2022 >/dev/null
+
+    cat > src/index.ts <<'TS'
+import express from "express";
+import mongoose from "mongoose";
+import "dotenv/config";
+
+const app = express();
+app.use(express.json());
+
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+const PORT = process.env.PORT ?? 3000;
+const MONGO = process.env.MONGO_URL ?? "mongodb://root:hyperarch@127.0.0.1:27017";
+
+mongoose.connect(MONGO)
+  .then(() => app.listen(PORT, () => console.log(`listo en :${PORT}`)))
+  .catch((e) => { console.error("mongo:", e.message); process.exit(1); });
+TS
+
+    cat > .env <<'ENV'
+PORT=3000
+MONGO_URL=mongodb://root:hyperarch@127.0.0.1:27017/app?authSource=admin
+ENV
+    echo ".env" > .gitignore
+    echo "node_modules/" >> .gitignore
+    echo "dist/" >> .gitignore
+
+    cat > .mise.toml <<'MISE'
+[tools]
+node = "lts"
+MISE
+
+    npm pkg set scripts.dev="tsx watch src/index.ts" >/dev/null
+    npm pkg set scripts.build="tsc" >/dev/null
+    PROFILE="Web-React"
+    ;;
+
+*)
+    die "tipo desconocido: $KIND  (react | java | api)"
+    ;;
+esac
+
+git init -q -b main 2>/dev/null || true
+git add -A 2>/dev/null || true
+git commit -qm "chore: scaffold $KIND project" 2>/dev/null || true
+
+echo
+say "Listo en $BASE/$NAME"
+echo "   Abrir:  code --profile $PROFILE $BASE/$NAME"
+[[ "$KIND" == "api" ]] && echo "   Base de datos:  mongo-up"
+echo

@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# hyper-help — chuleta de atajos y comandos de HyperArch.
+# Atajo: SUPER+F1  ·  o simplemente: hyper-help
+set -uo pipefail
+
+A=$'\e[1;34m'; V=$'\e[1;35m'; T=$'\e[0;37m'; D=$'\e[0;90m'; R=$'\e[0m'
+
+k() { printf "  ${V}%-22s${R} ${T}%s${R}\n" "$1" "$2"; }
+h() { printf "\n${A}▎ %s${R}\n" "$1"; }
+
+printf "\n${A}"
+echo '   ╭──────────────────────────────────────╮'
+echo '   │   H Y P E R A R C H   ·   ayuda      │'
+echo '   ╰──────────────────────────────────────╯'
+printf "${R}"
+
+h "DESARROLLO"
+k "SUPER + Return"      "Terminal"
+k "SUPER + R"           "VS Code · perfil Web/React"
+k "SUPER + J"           "VS Code · perfil Java"
+k "SUPER + O"           "VS Code · perfil DevOps"
+k "SUPER + G"           "lazygit"
+k "SUPER + D"           "lazydocker"
+k "SUPER + Shift + D"   "MongoDB Compass"
+k "SUPER + A"           "Cliente de API"
+
+h "SISTEMA"
+k "SUPER + H"           "Hyper Hub (centro de control)"
+k "SUPER + M"           "Monitor de recursos (btop)"
+k "SUPER + Shift + M"   "Monitor de GPU (nvtop)"
+k "SUPER + I"           "Panel de la IA"
+k "SUPER + F1"          "Esta ayuda"
+
+h "MODOS"
+k "SUPER + P"           "Modo Producción (quita cristal, baja GPU)"
+k "SUPER + Z"           "Modo Foco (oculta barra, silencia avisos)"
+k "SUPER + Shift + W"   "Alternar fondo animado"
+
+h "GENERAL"
+k "SUPER + Space"       "Lanzador de aplicaciones"
+k "SUPER + E"           "Gestor de archivos"
+k "SUPER + B"           "Navegador"
+k "SUPER + Shift + B"   "Navegador limpio (pruebas)"
+k "SUPER + S"           "Steam"
+k "SUPER + L"           "Bloquear pantalla"
+k "SUPER + Shift + S"   "Captura de región"
+k "SUPER + Shift + V"   "Historial del portapapeles"
+k "SUPER + Q"           "Cerrar ventana"
+k "SUPER + F"           "Pantalla completa"
+
+h "VENTANAS Y ESCRITORIOS"
+k "SUPER + 1..9"        "Cambiar de escritorio"
+k "SUPER + Shift + 1..9" "Mover ventana a escritorio"
+k "SUPER + flechas"     "Mover el foco"
+k "SUPER + Shift + fl."  "Mover la ventana"
+k "SUPER + Alt + flechas" "Redimensionar"
+printf "  ${D}%s${R}\n" "1 terminal · 2 editor · 3 navegador · 4 datos · 5 monitor (vertical) · 9 juegos"
+
+h "COMANDOS"
+k "hyper-hub"           "Centro de control  (--watch en vivo)"
+k "hyper-ai ask '...'"  "Preguntar a la IA con la telemetría actual"
+k "hyper-update"        "Snapshot → sistema → AUR → limpieza"
+k "hyper-backup run"    "Copia de seguridad (disco externo)"
+k "hyper-profile"       "dev | ai | gaming | silent"
+k "hyper-ccd info"      "Topología de CCD del 7900X3D"
+k "hyper-ccd cache CMD" "Ejecutar fijado al CCD con V-Cache"
+k "hyper-new"           "Crear proyecto (react | java | api)"
+k "hyper-wallpaper"     "static | engine <id> | toggle"
+k "mongo-up / down"     "MongoDB en contenedor"
+k "snap-list"           "Listar snapshots del sistema"
+
+h "RECUPERACIÓN"
+printf "  ${T}%s${R}\n" "Si una actualización rompe el sistema:"
+printf "  ${T}%s${R}\n" "GRUB → HyperArch snapshots → arranca una anterior"
+printf "  ${D}%s${R}\n" "Los logs sobreviven al rollback a propósito (@var_log fuera del snapshot)"
+echo

@@ -1,18 +1,18 @@
 format = """
-[](#8b0020)\
+[](#6d3cff)\
 $os$username\
-[](bg:#3a1018 fg:#8b0020)\
+[](bg:#16233d fg:#6d3cff)\
 $directory\
-[](fg:#3a1018 bg:#1a1416)\
+[](fg:#16233d bg:#141822)\
 $git_branch$git_status\
-[](fg:#1a1416 bg:#0f0d0e)\
+[](fg:#141822 bg:#0d0f14)\
 $nodejs$java$rust$docker_context\
-[](fg:#0f0d0e)\
+[](fg:#0d0f14)\
 $line_break$character"""
 
 [os]
 disabled = false
-style = "bg:#8b0020 fg:#f3d6d9"
+style = "bg:#6d3cff fg:#d6e4f3"
 format = "[ $symbol ]($style)"
 
 [os.symbols]
@@ -20,44 +20,44 @@ Arch = "󰣇"
 
 [username]
 show_always = true
-style_user = "bg:#8b0020 fg:#f3d6d9"
+style_user = "bg:#6d3cff fg:#d6e4f3"
 format = "[ $user ]($style)"
 
 [directory]
-style = "bg:#3a1018 fg:#f3d6d9"
+style = "bg:#16233d fg:#d6e4f3"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 
 [git_branch]
 symbol = ""
-style = "bg:#1a1416 fg:#ff1e3c"
+style = "bg:#141822 fg:#2f9bff"
 format = "[ $symbol $branch ]($style)"
 
 [git_status]
-style = "bg:#1a1416 fg:#fbbf24"
+style = "bg:#141822 fg:#fbbf24"
 format = "[$all_status$ahead_behind ]($style)"
 
 [nodejs]
 symbol = "󰎙"
-style = "bg:#0f0d0e fg:#4ade80"
+style = "bg:#0d0f14 fg:#4ade80"
 format = "[ $symbol $version ]($style)"
 
 [java]
 symbol = ""
-style = "bg:#0f0d0e fg:#f89820"
+style = "bg:#0d0f14 fg:#f89820"
 format = "[ $symbol $version ]($style)"
 
 [rust]
 symbol = ""
-style = "bg:#0f0d0e fg:#ff1e3c"
+style = "bg:#0d0f14 fg:#ff8a3c"
 format = "[ $symbol $version ]($style)"
 
 [docker_context]
 symbol = "󰡨"
-style = "bg:#0f0d0e fg:#2496ed"
+style = "bg:#0d0f14 fg:#2496ed"
 format = "[ $symbol $context ]($style)"
 
 [character]
-success_symbol = "[❯](bold #ff1e3c)"
-error_symbol = "[❯](bold #8b0020)"
+success_symbol = "[❯](bold #2f9bff)"
+error_symbol = "[❯](bold #ff3b5c)"

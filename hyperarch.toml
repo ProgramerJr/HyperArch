@@ -56,12 +56,20 @@ refresh_hz   = 144
 
 [theme]
 background   = "#090909"
-surface      = "#0f0d0e"
-accent       = "#ff1e3c"
-accent_dark  = "#8b0020"
-text         = "#f3d6d9"
-muted        = "#6b5658"
+surface      = "#0d0f14"
+accent       = "#2f9bff"
+accent_dark  = "#6d3cff"
+text         = "#d6e4f3"
+muted        = "#55606e"
 font_mono    = "JetBrainsMono Nerd Font"
+
+# Estados semánticos. Fuera de la paleta de marca a propósito:
+# el rojo solo significa error (deploy caído, servicio parado), nunca
+# identidad. Antes la marca era carmesí y eso hacía ambiguo un vistazo
+# a los widgets de Netlify/Render.
+state_ok     = "#4ade80"
+state_warn   = "#fbbf24"
+state_error  = "#ff3b5c"
 blur_size    = 10
 blur_passes  = 4
 opacity      = 0.82

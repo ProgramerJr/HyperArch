@@ -13,6 +13,7 @@
     "custom/ai",
     "custom/github", "custom/netlify", "custom/render", "custom/docker",
     "cpu", "memory", "custom/gpu", "temperature",
+    "custom/updates", "idle_inhibitor",
     "pulseaudio", "network", "tray"
   ],
 
@@ -35,6 +36,20 @@
     "format": "{:%H:%M}",
     "format-alt": "{:%a %d %b  %H:%M}",
     "tooltip-format": "<tt>{calendar}</tt>"
+  },
+
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": { "activated": "󰅶", "deactivated": "󰾪" },
+    "tooltip-format-activated": "Reposo inhibido: la pantalla no se bloqueará",
+    "tooltip-format-deactivated": "Reposo normal"
+  },
+
+  "custom/updates": {
+    "exec": "~/.config/waybar/widgets/updates.sh",
+    "return-type": "json",
+    "interval": 3600,
+    "on-click": "kitty -e hyper-update"
   },
 
   "custom/ai": {

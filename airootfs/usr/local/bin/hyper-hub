@@ -6,7 +6,7 @@
 # demuestre sus límites.
 set -uo pipefail
 
-A=$'\e[1;31m'; T=$'\e[0;37m'; D=$'\e[0;90m'
+A=$'\e[1;34m'; T=$'\e[0;37m'; D=$'\e[0;90m'
 OK=$'\e[1;32m'; W=$'\e[1;33m'; R=$'\e[0m'
 
 h()  { printf "\n${A}▎ %s${R}\n" "$1"; }

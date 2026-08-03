@@ -18,3 +18,4 @@ backup.conf
 .idea/
 *.swp
 .pkgcache/
+out/

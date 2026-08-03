@@ -317,5 +317,101 @@ def main() -> None:
         time.sleep(cfg["interval_seconds"])
 
 
+# ─────────────────────── Modo interactivo: ask ───────────────────────────
+
+ASK_PROMPT = """Eres el asistente de sistema de HyperArch, en la máquina del usuario:
+Ryzen 9 7900X3D (12C/24T, dos CCD, 3D V-Cache en CCD0), Radeon RX 7900 XTX 24 GB,
+64 GB RAM, NVMe 4 TB con Btrfs y snapshots, escritorio Hyprland.
+
+Responde en español, de forma breve y concreta. Si propones un comando, explica
+qué hace antes de darlo. Nunca propongas borrar ficheros ni formatear nada.
+
+Telemetría actual del sistema:
+{telemetry}
+
+Pregunta del usuario: {question}
+"""
+
+
+def ask(question: str) -> int:
+    """Consulta puntual al modelo con la telemetría actual como contexto."""
+    cfg = load_config()
+    try:
+        t = collect()
+    except Exception as e:
+        print(f"No se pudo leer la telemetría: {e}")
+        return 1
+
+    payload = json.dumps({
+        "model": cfg["model"],
+        "prompt": ASK_PROMPT.format(
+            telemetry=json.dumps(asdict(t), ensure_ascii=False, indent=2),
+            question=question,
+        ),
+        "stream": False,
+        "options": {"temperature": 0.3, "num_predict": 600},
+    }).encode()
+
+    req = urllib.request.Request(
+        cfg["endpoint"], data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            print("\n" + json.loads(resp.read())["response"].strip() + "\n")
+        return 0
+    except (urllib.error.URLError, OSError) as e:
+        print(f"\nRuntime de inferencia no disponible ({e}).")
+        print("Comprueba:  systemctl status ollama")
+        print("\nMientras tanto, aquí tienes el estado en crudo:\n")
+        for k, v in asdict(t).items():
+            if k != "top_processes":
+                print(f"  {k:24} {v}")
+        return 1
+
+
+def review() -> int:
+    """Resumen de lo que la IA ha hecho y sugerido recientemente."""
+    try:
+        lines = open(LOG_PATH).read().splitlines()
+    except OSError:
+        print("Sin registro todavía.")
+        return 1
+
+    auto = [l for l in lines if "AUTO aplicado" in l]
+    sugg = [l for l in lines if "SUGERENCIA" in l]
+
+    print(f"\n  Acciones aplicadas automáticamente: {len(auto)}")
+    for l in auto[-8:]:
+        print(f"    {l}")
+    print(f"\n  Sugerencias pendientes de tu decisión: {len(sugg)}")
+    for l in sugg[-8:]:
+        print(f"    {l}")
+    print()
+    return 0
+
+
 if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1]
+        if cmd == "ask":
+            q = " ".join(sys.argv[2:]).strip()
+            if not q:
+                print('uso: hyper-ai ask "¿por qué va lento el sistema?"')
+                raise SystemExit(1)
+            raise SystemExit(ask(q))
+        elif cmd == "review":
+            raise SystemExit(review())
+        elif cmd == "status":
+            try:
+                print(json.dumps(asdict(collect()), ensure_ascii=False, indent=2))
+            except Exception as e:
+                print(f"error: {e}")
+                raise SystemExit(1)
+            raise SystemExit(0)
+        elif cmd in ("-h", "--help"):
+            print("uso: hyper-ai [ask \"pregunta\" | review | status]")
+            print("  sin argumentos: arranca el bucle del servicio")
+            raise SystemExit(0)
     main()

@@ -1,0 +1,9 @@
+/* HyperArch — acentos de marca en apps GTK4/libadwaita */
+:root {
+  --accent-bg-color: #2f9bff;
+  --accent-fg-color: #090909;
+  --accent-color: #6dbcff;
+  --destructive-bg-color: #ff3b5c;
+  --window-bg-color: #0d0f14;
+  --view-bg-color: #090909;
+}

@@ -5,13 +5,13 @@
 #
 set -euo pipefail
 
-RED=$'\e[1;31m'; GRN=$'\e[1;32m'; RST=$'\e[0m'
+BLUE=$'\e[1;34m'; GRN=$'\e[1;32m'; RST=$'\e[0m'
 say() { echo "${GRN}::${RST} $*"; }
 
 [[ $EUID -ne 0 ]] || { echo "No lo ejecutes como root."; exit 1; }
 
 echo
-echo "  ${RED}HyperArch${RST} — configuración inicial"
+echo "  ${BLUE}HyperArch${RST} — configuración inicial"
 echo
 
 # ── yay ───────────────────────────────────────────────────────────────────

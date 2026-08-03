@@ -65,3 +65,18 @@ eval "$(starship init zsh)"
 alias hup="hyper-update"
 alias hbackup="hyper-backup run"
 alias hwall="hyper-wallpaper"
+
+# Herramientas nuevas
+alias hhelp="hyper-help"
+alias hnew="hyper-new"
+alias hask="hyper-ai ask"
+alias hreview="hyper-ai review"
+alias hsecrets="hyper-secrets"
+alias tldr="tldr"
+
+# mise: versiones de runtime por proyecto
+command -v mise >/dev/null && eval "$(mise activate zsh)"
+# direnv: entorno automático por directorio
+command -v direnv >/dev/null && eval "$(direnv hook zsh)"
+# atuin: historial con búsqueda inteligente
+command -v atuin >/dev/null && eval "$(atuin init zsh --disable-up-arrow)"

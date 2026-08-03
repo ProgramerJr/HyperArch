@@ -1,0 +1,9 @@
+# Fuerza LF en todo el repositorio.
+# Un script bash con CRLF no arranca en Linux: falla con "bad interpreter: ^M".
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.qcow2 binary
+*.iso binary
