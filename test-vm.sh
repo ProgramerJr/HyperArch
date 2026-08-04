@@ -60,7 +60,7 @@ ARGS=(
 case "${1:-}" in
     --with-disk)
         [[ -n "$ISO" ]] || { echo "No hay ISO en out/. Ejecuta ./build.sh primero."; exit 1; }
-        [[ -f "$DISK" ]] || qemu-img create -f qcow2 "$DISK" 40G
+        [[ -f "$DISK" ]] || qemu-img create -f qcow2 "$DISK" 80G
         echo ":: ISO: $(basename "$ISO")  +  disco virtual 40G"
         echo ":: Dentro del live: sudo hyperarch-install /dev/vda"
         exec qemu-system-x86_64 "${ARGS[@]}" \
