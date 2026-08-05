@@ -97,8 +97,9 @@ docker run --rm "${TTY_FLAGS[@]}" \
 
         # Instalador accesible desde el live
         mkdir -p airootfs/usr/local/bin
-        cp /src/installer/install.sh airootfs/usr/local/bin/hyperarch-install
-        chmod +x airootfs/usr/local/bin/hyperarch-install
+        mkdir -p airootfs/usr/bin
+        cp /src/installer/install.sh airootfs/usr/bin/hyperarch-install
+        chmod 755 airootfs/usr/bin/hyperarch-install
         mkdir -p airootfs/root
         cp -r /src/packages airootfs/root/packages
         cp -r /src/airootfs airootfs/root/airootfs
@@ -120,7 +121,7 @@ docker run --rm "${TTY_FLAGS[@]}" \
 
   Para instalar en disco (BORRA TODO el disco indicado):
 
-      sudo hyperarch-install /dev/nvme0n1
+      sudo hyperarch-install /dev/TU_DISCO
 
   Lista tus discos con:  lsblk
 

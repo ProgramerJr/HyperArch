@@ -3,3 +3,13 @@ python
 python-psutil
 python-requests
 python-pip
+sox
+libpulse
+espeak-ng
+python-numpy
+python-fastapi
+uvicorn
+python-websockets
+python-fastapi
+uvicorn
+python-websockets

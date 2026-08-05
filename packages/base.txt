@@ -34,3 +34,5 @@ restic
 gnome-keyring
 libsecret
 seahorse
+nano
+libnotify

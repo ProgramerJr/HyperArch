@@ -33,3 +33,7 @@ python-pywal
 xorg-xwayland
 greetd
 greetd-tuigreet
+brightnessctl
+ydotool
+wtype
+libqalculate
