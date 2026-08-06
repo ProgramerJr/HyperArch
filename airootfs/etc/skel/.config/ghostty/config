@@ -1,0 +1,49 @@
+# HyperArch — Ghostty (renderizado por GPU)
+font-family = JetBrainsMono Nerd Font
+font-size = 11.5
+font-feature = calt
+font-feature = liga
+
+background = 090909
+foreground = d6e4f3
+cursor-color = 2f9bff
+selection-background = 6d3cff
+selection-foreground = ffffff
+
+palette = 0=#141822
+palette = 8=#55606e
+palette = 1=#ff3b5c
+palette = 9=#ff6b85
+palette = 2=#4ade80
+palette = 10=#86efac
+palette = 3=#fbbf24
+palette = 11=#fcd34d
+palette = 4=#2f9bff
+palette = 12=#6dbcff
+palette = 5=#6d3cff
+palette = 13=#a78bfa
+palette = 6=#22d3ee
+palette = 14=#67e8f9
+palette = 7=#d6e4f3
+palette = 15=#ffffff
+
+background-opacity = 0.85
+background-blur-radius = 32
+
+window-padding-x = 12
+window-padding-y = 10
+window-decoration = false
+confirm-close-surface = false
+
+cursor-style = block
+cursor-style-blink = false
+scrollback-limit = 20000
+mouse-hide-while-typing = true
+bell-features = no-audio
+
+command = /bin/zsh
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+
+keybind = ctrl+shift+c=copy_to_clipboard
+keybind = ctrl+shift+v=paste_from_clipboard

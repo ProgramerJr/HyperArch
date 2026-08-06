@@ -34,6 +34,13 @@ yay -S --noconfirm --needed \
     tailscale \
     mongodb-compass \
     bibata-cursor-theme \
+    walker-bin \
+    wlogout \
+    swww \
+    greetd-regreet \
+    matugen \
+    papirus-folders \
+    uosc \
     linux-wallpaperengine-git \
     steamcmd
 
@@ -71,7 +78,7 @@ install_profile() {
     done
 }
 
-install_profile "Web-React" "${WEB[@]}"
+install_profile "MERN" "${WEB[@]}"
 install_profile "Java"      "${JAVA[@]}"
 install_profile "DevOps"    "${OPS[@]}"
 
@@ -89,7 +96,7 @@ Type=Application
 Categories=Development;
 EOF
 }
-make_launcher "Web/React" "web"    "Web-React"
+make_launcher "Web/React" "web"    "MERN"
 make_launcher "Java"      "java"   "Java"
 make_launcher "DevOps"    "devops" "DevOps"
 

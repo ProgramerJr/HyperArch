@@ -1,10 +1,10 @@
-mesa
 lib32-mesa
-vulkan-radeon
-lib32-vulkan-radeon
-vulkan-icd-loader
 lib32-vulkan-icd-loader
+lib32-vulkan-radeon
+mesa
 rocm-hip-sdk
 rocm-opencl-sdk
-rocminfo
 rocm-smi-lib
+rocminfo
+vulkan-icd-loader
+vulkan-radeon

@@ -1,5 +1,11 @@
+espeak-ng
+libpulse
 ollama-rocm
 python
+python-fastapi
+python-pip
 python-psutil
 python-requests
-python-pip
+python-websockets
+sox
+uvicorn

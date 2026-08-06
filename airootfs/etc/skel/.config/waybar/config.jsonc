@@ -8,13 +8,13 @@
   "margin-right": 8,
 
   "modules-left": ["hyprland/workspaces", "hyprland/window"],
-  "modules-center": ["clock"],
+  "modules-center": ["mpris", "clock"],
   "modules-right": [
     "custom/ai",
     "custom/github", "custom/netlify", "custom/render", "custom/docker",
     "cpu", "memory", "custom/gpu", "temperature",
     "custom/updates", "idle_inhibitor",
-    "pulseaudio", "network", "tray"
+    "custom/notification", "pulseaudio", "network", "tray"
   ],
 
   "hyprland/workspaces": {
@@ -50,6 +50,33 @@
     "return-type": "json",
     "interval": 3600,
     "on-click": "kitty -e hyper-update"
+  },
+
+  "mpris": {
+    "format": "{player_icon} {dynamic}",
+    "format-paused": "{status_icon} <i>{dynamic}</i>",
+    "dynamic-len": 38,
+    "player-icons": { "default": "", "firefox": "", "mpv": "" },
+    "status-icons": { "paused": "" },
+    "on-click": "playerctl play-pause",
+    "on-scroll-up": "playerctl next",
+    "on-scroll-down": "playerctl previous"
+  },
+
+  "custom/notification": {
+    "tooltip": false,
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "", "none": "",
+      "dnd-notification": "", "dnd-none": "",
+      "inhibited-notification": "", "inhibited-none": "",
+      "dnd-inhibited-notification": "", "dnd-inhibited-none": ""
+    },
+    "return-type": "json",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
   },
 
   "custom/ai": {

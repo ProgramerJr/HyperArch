@@ -1,9 +1,9 @@
+easyeffects
 ffmpeg
-obs-studio
 gimp
+imagemagick
 inkscape
 krita
-vlc
-imagemagick
-easyeffects
+mpv
+obs-studio
 v4l2loopback-dkms

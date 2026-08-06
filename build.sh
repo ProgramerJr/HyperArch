@@ -80,6 +80,22 @@ docker run --rm "${TTY_FLAGS[@]}" \
         sed -i "s/^iso_label=.*/iso_label=\"HYPERARCH_$(date +%Y%m)\"/"     profiledef.sh
         sed -i "s|^iso_publisher=.*|iso_publisher=\"HyperArch\"|"           profiledef.sh
         sed -i "s|^iso_application=.*|iso_application=\"HyperArch Live\"|"  profiledef.sh
+        cat >> profiledef.sh << 'PERMS'
+file_permissions+=(
+  ["/usr/bin/hyperarch-install"]="0:0:755"
+  ["/usr/local/bin/hyper-ai"]="0:0:755"
+  ["/usr/local/bin/hyper-hub"]="0:0:755"
+  ["/usr/local/bin/hyper-setup"]="0:0:755"
+  ["/usr/local/bin/hyper-update"]="0:0:755"
+  ["/usr/local/bin/hyper-backup"]="0:0:755"
+  ["/usr/local/bin/hyper-wallpaper"]="0:0:755"
+  ["/usr/local/bin/hyper-ccd"]="0:0:755"
+  ["/usr/local/bin/hyper-profile"]="0:0:755"
+  ["/usr/local/bin/hyper-focus-mode"]="0:0:755"
+  ["/usr/local/bin/hyper-production-mode"]="0:0:755"
+  ["/usr/local/bin/hyper-production-watch"]="0:0:755"
+)
+PERMS
 
         echo ":: Componiendo lista de paquetes"
         for f in base gpu desktop terminal development multimedia gaming ai; do
@@ -89,6 +105,8 @@ docker run --rm "${TTY_FLAGS[@]}" \
         grep -q "^\[multilib\]" pacman.conf || printf "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" >> pacman.conf
         # grml-zsh-config trae su propio /etc/skel/.zshrc y choca con el nuestro
         sed -i "/^grml-zsh-config$/d;/^xorg-server$/d" packages.x86_64
+        # Limpieza: rescate, hardware ajeno e invitados de VM
+        for p in clonezilla partclone partimage fsarchiver gpart drbl lrzip broadcom-wl b43-fwcutter linux-atm ndisc6 usb_modeswitch modemmanager wvdial pptpclient xl2tpd ppp openconnect vpnc stoken virtualbox-guest-utils-nox open-vm-tools hyperv qemu-guest-agent jfsutils nilfs-utils f2fs-tools bcachefs-tools udftools brltty espeakup livecd-sounds irssi lynx mc screen lftp vim cloud-init open-iscsi nbd sshfs cifs-utils nfs-utils darkhttpd refind; do sed -i "/^${p}$/d" packages.x86_64; done
         sort -u packages.x86_64 -o packages.x86_64
         echo "   $(wc -l < packages.x86_64) paquetes"
 
@@ -97,8 +115,9 @@ docker run --rm "${TTY_FLAGS[@]}" \
 
         # Instalador accesible desde el live
         mkdir -p airootfs/usr/local/bin
-        cp /src/installer/install.sh airootfs/usr/local/bin/hyperarch-install
-        chmod +x airootfs/usr/local/bin/hyperarch-install
+        mkdir -p airootfs/usr/bin
+        cp /src/installer/install.sh airootfs/usr/bin/hyperarch-install
+        chmod 755 airootfs/usr/bin/hyperarch-install
         mkdir -p airootfs/root
         cp -r /src/packages airootfs/root/packages
         cp -r /src/airootfs airootfs/root/airootfs
@@ -120,7 +139,7 @@ docker run --rm "${TTY_FLAGS[@]}" \
 
   Para instalar en disco (BORRA TODO el disco indicado):
 
-      sudo hyperarch-install /dev/nvme0n1
+      sudo hyperarch-install /dev/TU_DISCO
 
   Lista tus discos con:  lsblk
 

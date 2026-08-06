@@ -48,6 +48,10 @@ while :; do
 done
 
 # ── Particionado ──────────────────────────────────────────────────────────
+# Limpiar restos de un intento anterior
+umount -R /mnt 2>/dev/null || true
+swapoff -a 2>/dev/null || true
+
 say "Particionando $DISK"
 sgdisk --zap-all "$DISK"
 sgdisk -n1:0:+1G   -t1:ef00 -c1:"EFI"       "$DISK"
@@ -93,6 +97,11 @@ chattr +C /mnt/var/lib/docker /mnt/var/lib/hyperarch/models 2>/dev/null || true
 mount "$ESP" /mnt/boot
 
 # ── Sistema base ──────────────────────────────────────────────────────────
+# multilib: necesario para Steam y librerías de 32 bits
+sed -i "/^#\\[multilib\\]/,+1 s/^#//" /etc/pacman.conf
+grep -q "^\\[multilib\\]" /etc/pacman.conf || printf "\\n[multilib]\\nInclude = /etc/pacman.d/mirrorlist\\n" >> /etc/pacman.conf
+pacman -Sy --noconfirm >/dev/null
+
 say "Instalando sistema base (esto tarda)"
 PKG_DIR="${HYPERARCH_PKG_DIR:-/root/packages}"
 mapfile -t PKGS < <(cat "$PKG_DIR"/{base,gpu,desktop,terminal,development,multimedia,gaming,ai}.txt \
